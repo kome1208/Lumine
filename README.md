@@ -1,16 +1,19 @@
-# lumine
+# Lumine
 
-A new Flutter project.
+原神プレイヤーのために作られたステータス確認アプリ
 
-## Getting Started
+## 機能
 
-This project is a starting point for a Flutter application.
+- リアルタイムノートの確認
+- 天然樹脂回復リマインダー
+- ゲーム内データの確認
+- キャラクター詳細の確認
+- デイリーボーナス受け取り（埋め合わせログインも可能）
+- 交換コード適用
+- 育成素材カレンダー
+- etc...
 
-A few resources to get you started if this is your first Flutter project:
+## スクリーンショット
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+| ![Home](./.github/screenshots/home.png) | ![Character Detail](./.github/screenshots/character_detail.png) |
+|---|---|
