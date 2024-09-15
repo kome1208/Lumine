@@ -1,0 +1,10 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/transparent"/> <!-- 背景色を透明に設定 -->
+    <stroke
+        android:width="2dp"
+        android:color="#FFD700"/> <!-- ストローク色を金色に設定 -->
+    <size
+        android:width="24dp"
+        android:height="24dp"/>
+    <corners android:radius="12dp"/> <!-- 円形にするため、半径を指定 -->
+</shape>

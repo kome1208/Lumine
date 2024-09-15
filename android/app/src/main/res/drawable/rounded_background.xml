@@ -1,0 +1,4 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#80FFFFFF"/> <!-- 半透明の白色背景 -->
+    <corners android:radius="16dp"/> <!-- 角丸の半径を設定 -->
+</shape>
