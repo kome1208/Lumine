@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lumine/features/exchange_code/exchange_code_view.dart';
 import 'package:lumine/features/calendar/calendar_view.dart';
 import 'package:lumine/features/daily_bonus/daily_bonus_view.dart';
-import 'package:lumine/features/menu/ui/view/license_view.dart';
+import 'package:lumine/features/menu/ui/view/about_app_view.dart';
 import 'package:lumine/features/menu/ui/view/test_view.dart';
 import 'package:lumine/features/settings/settings_view.dart';
 import 'package:lumine/widgets/divider_with_text.dart';
@@ -94,11 +94,11 @@ class MenuView extends ConsumerWidget {
           ),
           ListTile(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const LicenseView()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutAppView()));
             },
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             leading: const Icon(Icons.info_outline),
-            title: const Text('ライセンス'),
+            title: const Text('アプリについて'),
             trailing: const Icon(Icons.chevron_right),
           ),
           if (kDebugMode)

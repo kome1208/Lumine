@@ -1,37 +1,22 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/provider/package_info.dart';
-import 'package:lumine/features/account/account_view.dart';
-import 'package:lumine/features/home/home_view.dart';
-import 'package:lumine/features/menu/menu_view.dart';
-import 'package:lumine/features/menu/ui/view/test_view.dart';
-import 'package:lumine/features/message/data/unread_count_notifier_provider.dart';
-import 'package:lumine/features/message/message_list_view.dart';
-import 'package:http/http.dart' as http;
+import 'package:lumine/features/menu/ui/view/license_view.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:http/http.dart' as http;
 
-class MainView extends HookConsumerWidget {
-  const MainView({super.key});
+class AboutAppView extends HookConsumerWidget {
+  const AboutAppView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedIndex = useState(0);
-    final pageController = usePageController();
-    final unreadCount = ref.watch(unreadCountNotifierProvider);
-
-    const pageList = [
-      HomeView(),
-      AccountView(),
-      MessageListView(),
-      MenuView(),
-      if (kDebugMode) TestView()
-    ];
+    final checkingUpdate = useState(false);
 
     Future<void> checkUpdate() async {
+      checkingUpdate.value = true;
       try {
         final packageInfo = ref.watch(packageInfoProvider);
 
@@ -90,62 +75,47 @@ class MainView extends HookConsumerWidget {
             behavior: SnackBarBehavior.floating,
           )
         );
+      } finally {
+        checkingUpdate.value = false;
       }
     }
 
-    useEffect(() {
-      checkUpdate();
-      return null;
-    }, []);
-
     return Scaffold(
-      body: PageView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: pageList.length,
-        controller: pageController,
-        onPageChanged: (index) {
-          selectedIndex.value = index;
-        },
-        itemBuilder: (context, index) {
-          return pageList[index];
-        }
+      appBar: AppBar(
+        title: const Text('アプリについて'),
       ),
-      bottomNavigationBar: NavigationBar(
-        height: 70,
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.home),
-            label: 'ホーム',
+      body: ListView(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.source),
+            title: const Text('ソースコード'),
+            subtitle: const Text('https://github.com/kome1208/Lumine'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => launchUrlString('https://github.com/kome1208/Lumine'),
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.account_circle),
-            label: 'アカウント',
+          ListTile(
+            leading: const Icon(Icons.account_circle),
+            title: const Text('Twitter(X)'),
+            subtitle: const Text('https://twitter.com/ZS590KS'),
+            trailing: const Icon(Icons.open_in_new),
+            onTap: () => launchUrlString('https://twitter.com/ZS590KS'),
           ),
-          NavigationDestination(
-            icon: Badge.count(
-              isLabelVisible: unreadCount.valueOrNull?.total == 0 ? false : true,
-              count: unreadCount.valueOrNull?.total ?? 0,
-              child: const Icon(Icons.notifications),
-            ),
-            label: 'メッセージ',
+          ListTile(
+            leading: const Icon(Icons.info_outline),
+            title: const Text('ライセンス'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LicenseView())),
           ),
-          const NavigationDestination(
-            icon: Icon(Icons.menu),
-            label: 'メニュー',
+          ListTile(
+            leading: const Icon(Icons.system_update),
+            title: const Text('アップデートを確認'),
+            trailing: checkingUpdate.value ?
+            const CircularProgressIndicator() :
+            null,
+            onTap: () => checkUpdate()
           ),
-          if (kDebugMode) const NavigationDestination(
-            icon: Icon(Icons.bug_report),
-            label: 'Test'
-          )
         ],
-        selectedIndex: selectedIndex.value,
-        onDestinationSelected: (index) {
-          if (pageController.hasClients) {
-            selectedIndex.value = index;
-            pageController.jumpToPage(index);
-          }
-        },
-      )
+      ),
     );
   }
 }
