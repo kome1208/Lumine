@@ -82,6 +82,31 @@ class HomeView extends HookConsumerWidget  {
                     break;
                 }
               }
+
+              if (notificationSettings.transformerRemindEnabled && !value.transformer.recoveryTime['reached']) {
+                final recoveryTime = value.transformer.recoveryTime;
+
+                setReminder(
+                  '参量物質変化器の準備完了',
+                  '参量物質変化器が再び使用可能になりました',
+                  Duration(
+                    days: recoveryTime['Day'],
+                    hours: recoveryTime['Hour'],
+                    minutes: recoveryTime['Minute'],
+                    seconds: recoveryTime['Second'],
+                  ).inSeconds,
+                  6
+                );
+              }
+
+              if (notificationSettings.homeCoinRemindEnabled && value.homeCoinRecoveryTime != '0') {
+                setReminder(
+                  '洞天宝銭が上限に達しました',
+                  '現在の洞天宝銭は${value.currentHomeCoin}/${value.maxHomeCoin}です',
+                  int.parse(value.homeCoinRecoveryTime),
+                  7
+                );
+              }
             }
 
             return SingleChildScrollView(
@@ -567,6 +592,7 @@ class HomeView extends HookConsumerWidget  {
                           onPressed: () {
                             final award = dailyAwardList.value!.awards[dailyAwardSignInfo.value!.totalSignDay];
                             ref.watch(hoYoLABAPINotifierProvider).dailyCheckIn().then((message) {
+                              if (!context.mounted) return;
                               showDialog(
                                 context: context,
                                 builder: (context) {
@@ -689,6 +715,7 @@ class HomeView extends HookConsumerWidget  {
                                 child: const Text('交換'),
                                 onPressed: () {
                                   ref.read(savedCodesNotifierProvider.notifier).apply(exchangeCode).then((message) {
+                                    if (!context.mounted) return;
                                     showDialog(
                                       context: context,
                                       barrierDismissible: false,

@@ -102,7 +102,21 @@ class NotificationSettingView extends HookConsumerWidget {
                 },
               ),
             )
-          ]
+          ],
+          SwitchListTile(
+            title: const Text('参量物質変化器の準備完了通知'),
+            value: settings.transformerRemindEnabled,
+            onChanged: (value) {
+              ref.read(appNotificationNotifierProvider.notifier).setTransformerRemindEnabled(value);
+            }
+          ),
+          SwitchListTile(
+            title: const Text('洞天宝銭上限通知'),
+            value: settings.homeCoinRemindEnabled,
+            onChanged: (value) {
+              ref.read(appNotificationNotifierProvider.notifier).setHomeCoinRemindEnabled(value);
+            }
+          ),
         ],
       )
     );
