@@ -371,7 +371,7 @@ class HoYoLAB {
     .replace(
       path: '/community/painter/wapi/circle/channel/guide/material',
       queryParameters: {
-        "game_id": 2
+        "game_id": "2"
       }
     );
 
