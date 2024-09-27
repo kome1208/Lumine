@@ -1,10 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:lumine/core/api/model/game_record_character_detail_model.dart';
 import 'package:lumine/features/account/data/game_record_character_detail_provider.dart';
 import 'package:lumine/features/account/data/game_record_character_list_provider.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
@@ -206,6 +208,7 @@ class _CharacterDetail extends HookConsumerWidget {
     final tabController = useTabController(initialLength: 4);
     final characterDetail = ref.watch(gameRecordCharacterDetailNotifierProvider(id));
     final showAltValue = useState(false);
+    final buildType = useState(1);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -457,65 +460,147 @@ class _CharacterDetail extends HookConsumerWidget {
                                 ],
                               ),
                             ),
-                            if (relics.isNotEmpty) ...relics.map((relic) => 
-                              ExpansionTile(
-                                tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-                                shape: const Border.symmetric(horizontal: BorderSide(color: Colors.transparent)),
-                                leading: SizedBox(
-                                  width: 56,
-                                  height: 56,
-                                  child: Stack(
-                                    alignment: Alignment.bottomRight,
-                                    children: [
-                                      CachedNetworkImage(
-                                        imageUrl: relic.icon
-                                      ),
-                                      Wrap(
-                                        direction: Axis.horizontal,
-                                        children: [
-                                          Image.asset('assets/star.png', width: 16, height: 16,),
-                                          Text('${relic.rarity}')
-                                        ],
-                                      )
-                                    ],
+                            if (relics.isNotEmpty) ...[
+                              ListTile(
+                                title: Text(
+                                  'スコア合計: ${relics.map((relic) => calculateRelicScore(relic.subPropertyList, buildType.value)).sum.toStringAsFixed(1)}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20
                                   ),
                                 ),
-                                title: Text(relic.name),
-                                subtitle: Text('Lv.${relic.level}'),
-                                children: [
-                                  ListTile(
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                                    title: Text(
-                                      characterDetailData.propertyMap['${relic.mainProperty.propertyType}']!.filterName,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 20
-                                      ),
+                                trailing: DropdownButton(
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: 1,
+                                      child: Text('攻撃力基準'),
                                     ),
-                                    trailing: Text(
-                                      relic.mainProperty.value,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18
-                                      ),
+                                    DropdownMenuItem(
+                                      value: 2,
+                                      child: Text('防御力基準'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 3,
+                                      child: Text('元チャ効率基準'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 4,
+                                      child: Text('HP基準'),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 5,
+                                      child: Text('元素熟知基準'),
+                                    ),
+                                  ],
+                                  value: buildType.value,
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      buildType.value = value;
+                                    }
+                                  },
+                                ),
+                              ),
+                              ...relics.map((relic) => 
+                                ExpansionTile(
+                                  tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                                  shape: const Border.symmetric(horizontal: BorderSide(color: Colors.transparent)),
+                                  leading: SizedBox(
+                                    width: 56,
+                                    height: 56,
+                                    child: Stack(
+                                      alignment: Alignment.bottomRight,
+                                      children: [
+                                        CachedNetworkImage(
+                                          imageUrl: relic.icon
+                                        ),
+                                        Wrap(
+                                          direction: Axis.horizontal,
+                                          children: [
+                                            Image.asset('assets/star.png', width: 16, height: 16,),
+                                            Text('${relic.rarity}')
+                                          ],
+                                        )
+                                      ],
                                     ),
                                   ),
-                                  ...relic.subPropertyList.map((subProp) =>
+                                  title: Text(relic.name),
+                                  subtitle: Text('Lv.${relic.level}'),
+                                  children: [
                                     ListTile(
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                                      title: Text(characterDetailData.propertyMap['${subProp.propertyType}']!.filterName),
-                                      trailing: Text(
-                                        subProp.value,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.normal,
-                                          fontSize: 16
+                                      title: const Text(
+                                        'スコア',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20
                                         ),
                                       ),
-                                    )
-                                  )
-                                ],
+                                      trailing: Text(
+                                        calculateRelicScore(relic.subPropertyList, buildType.value).toStringAsFixed(1),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18
+                                        ),
+                                      ),
+                                    ),
+                                    ListTile(
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                      title: Text(
+                                        characterDetailData.propertyMap['${relic.mainProperty.propertyType}']!.filterName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 20
+                                        ),
+                                      ),
+                                      trailing: Text(
+                                        relic.mainProperty.value,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18
+                                        ),
+                                      ),
+                                    ),
+                                    WaterfallFlow.builder(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 2,
+                                      ),
+                                      itemCount: relic.subPropertyList.length,
+                                      itemBuilder: (context, index) {
+                                        final subProp = relic.subPropertyList[index];
+                                        final propInfo = characterDetailData.propertyMap['${subProp.propertyType}']!;
+
+                                        return ListTile(
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                          title: Text(
+                                            propInfo.filterName.replaceAll(RegExp(r'パーセンテージ'), '%'),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          subtitle: Text(
+                                            subProp.value,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.normal,
+                                              fontSize: 16
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          trailing: subProp.times > 0 ?
+                                          RawChip(
+                                            padding: EdgeInsets.zero,
+                                            label: Text('${subProp.times}'),
+                                          ) :
+                                          null,
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                )
                               )
-                            ) else const Center(child: Text('聖遺物を装備していません')),
+                            ]
+                            else const Center(child: Text('聖遺物を装備していません')),
                           ],
                         ),
                         ListView(
@@ -695,6 +780,42 @@ class _CharacterDetail extends HookConsumerWidget {
       ),
     );
   }
+}
+
+double getValue(List<CharacterDetailRelicProperty> subProps, type) {
+  final value = subProps.firstWhereOrNull((prop) => prop.propertyType == type)?.value ?? '0';
+  return double.parse(value.replaceAll(RegExp(r'[^0-9\-.]'), ""));
+}
+
+double calculateRelicScore(List<CharacterDetailRelicProperty>property, int buildType) {
+  final [dmg, hp, def, recharge, mastery, critR, critD] = [
+    6, 3, 9, 23, 28, 20, 22
+  ].map((type) => getValue(property, type)).toList();
+
+  final critBonus = (critR * 2) + critD;
+
+  double score = 0;
+
+  switch (buildType) {
+    case 1:
+      score = dmg + critBonus;
+      break;
+    case 2:
+      score = def + critBonus;
+      break;
+    case 3:
+      score = recharge + critBonus;
+      break;
+    case 4:
+      score = hp + critBonus;
+      break;
+    case 5:
+      score = (mastery + critBonus) / 2;
+      break;
+    default:
+  }
+
+  return score;
 }
 
 enum CharacterSortType { 
