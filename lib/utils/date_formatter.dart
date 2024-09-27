@@ -11,7 +11,7 @@ class DateFormatter {
     final duration = Duration(milliseconds: timestamp);
 
     int days = duration.inDays;
-    int hours = duration.inHours & 24;
+    int hours = duration.inHours % 24;
     int minutes = duration.inMinutes % 60;
     int seconds = duration.inSeconds % 60;
 
