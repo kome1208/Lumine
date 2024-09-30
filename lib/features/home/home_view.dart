@@ -8,6 +8,7 @@ import 'package:lumine/core/preference/appearance/appearance_provider.dart';
 import 'package:lumine/core/preference/notification/app_notification_provider.dart';
 import 'package:lumine/core/provider/hoyolab_api.dart';
 import 'package:lumine/features/daily_bonus/data/award_list_notifier_provider.dart';
+import 'package:lumine/features/daily_bonus/data/extra_award_provider.dart';
 import 'package:lumine/features/daily_bonus/data/sign_info_notifier_provider.dart';
 import 'package:lumine/features/home/data/daily_note.dart';
 import 'package:lumine/features/home/data/exchange_code.dart';
@@ -615,6 +616,7 @@ class HomeView extends HookConsumerWidget  {
 
                               ref.read(awardListNotifierProvider.notifier).refresh();
                               ref.read(signInfoNotifierProvider.notifier).refresh();
+                              ref.read(extraAwardNotifierProvider.notifier).refresh();
                             });
                           },
                         ),

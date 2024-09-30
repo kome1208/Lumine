@@ -4,9 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/provider/hoyolab_api.dart';
 import 'package:lumine/features/daily_bonus/data/award_list_notifier_provider.dart';
+import 'package:lumine/features/daily_bonus/data/extra_award_provider.dart';
 import 'package:lumine/features/daily_bonus/data/resign_info_provider.dart';
 import 'package:lumine/features/daily_bonus/data/sign_info_notifier_provider.dart';
 import 'package:lumine/features/daily_bonus/data/task_list_provider.dart';
+import 'package:lumine/utils/date_formatter.dart';
+import 'package:lumine/widgets/my_card.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 class DailyBonusView extends HookConsumerWidget {
@@ -17,6 +20,7 @@ class DailyBonusView extends HookConsumerWidget {
     final awardList = ref.watch(awardListNotifierProvider);
     final signInfo = ref.watch(signInfoNotifierProvider);
     final resignInfo = ref.watch(resignInfoProvider);
+    final extraAward = ref.watch(extraAwardNotifierProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -65,127 +69,213 @@ class DailyBonusView extends HookConsumerWidget {
       ),
       body: awardList.when(
         data: (awardListData) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('ログイン日数: ${signInfo.value?.totalSignDay ?? 0}日'),
-                    Text('未ログイン: ${resignInfo.value?.signCntMissed ?? 0}日'),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: WaterfallFlow.builder(
-                itemCount: awardListData.awards.length,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 8,
-                  mainAxisSpacing: 8
-                ),
-                itemBuilder: (context, index) {
-                  final award = awardListData.awards[index];
-                  final signInfoData = signInfo.value;
-
-                  final isReceivable = index == signInfoData?.totalSignDay && signInfoData?.isSign == false;
-                  
-                  return GestureDetector(
-                    onTap: isReceivable ?
-                    () async {
-                      ref.watch(hoYoLABAPINotifierProvider).dailyCheckIn().then((message) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('メッセージ'),
-                              content: Text(
-                                message == 'OK' ? '${award.name} x${award.cnt}を受け取りました' : message
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  child: const Text('閉じる')
-                                )
-                              ],
-                            );
-                          },
-                        );
-
-                        ref.invalidate(awardListNotifierProvider);
-                        ref.invalidate(signInfoNotifierProvider);
-                        ref.invalidate(resignInfoProvider);
-                      });
-                    } :
-                    null,
-                    child: Column(
-                      children: [
-                        AspectRatio(
-                          aspectRatio: 3 / 4,
-                          child: Container(
-                            clipBehavior: Clip.hardEdge,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: isReceivable ? const Color.fromRGBO(211, 125, 67, 1) : const Color.fromRGBO(175, 153, 121, 1),
-                            ),
-                            child: Stack(
-                              children: [
-                                Column(
-                                  children: [
-                                    AspectRatio(
-                                      aspectRatio: 1,
-                                      child: Container(
-                                        margin: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(40),
-                                          color: Colors.white
-                                        ),
-                                        child: CachedNetworkImage(
-                                          imageUrl: award.icon,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      'x${award.cnt}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.normal
-                                      ),
-                                    )
-                                  ],
-                                ),
-                                if (
-                                  signInfoData?.totalSignDay != null &&
-                                  signInfoData!.totalSignDay >= index + 1
-                                )
-                                Center(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(16),
-                                    constraints: const BoxConstraints.expand(),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.5)
-                                    ),
-                                    child: Image.asset('assets/check.png'),
-                                  ),
-                                )
-                              ],
-                            )
-                          ),
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...extraAward.when(
+                  data: (value) {
+                    if (int.parse(value.endTimestamp) * 1000 <= DateTime.now().millisecondsSinceEpoch) return [];
+                    return [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('追加ボーナス'),
+                            Text('${DateFormatter.formatDate(int.parse(value.startTimestamp) * 1000, 'yyyy.MM.dd')} - ${DateFormatter.formatDate(int.parse(value.endTimestamp) * 1000, 'yyyy.MM.dd')}'),
+                          ],
                         ),
-                        Text('${index + 1}日目')
-                      ],
-                    )
-                  );
-                },
-              )
-              )
-            ],
+                      ),
+                      MyCard(
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.all(8),
+                        child: Column(
+                          children: [
+                            const Text('本日のログインボーナスを受け取ると、追加のボーナスも獲得できます'),
+                            const SizedBox(height: 4),
+                            WaterfallFlow.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 7,
+                                crossAxisSpacing: 4
+                              ),
+                              itemCount: value.awards.length,
+                              itemBuilder: (context, index) {
+                                final award = value.awards[index];
+
+                                return GridTile(
+                                  child: Column(
+                                    children: [
+                                      AspectRatio(
+                                        aspectRatio: 1,
+                                        child: Stack(
+                                          children: [
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: const Color.fromRGBO(235, 232, 213, 1),
+                                                borderRadius: BorderRadius.circular(100)
+                                              ),
+                                              child: CachedNetworkImage(
+                                                imageUrl: award.icon
+                                              ),
+                                            ),
+                                            if (value.totalCnt > index)
+                                            Center(
+                                              child: Container(
+                                                padding: const EdgeInsets.all(8),
+                                                constraints: const BoxConstraints.expand(),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(0.5),
+                                                  borderRadius: BorderRadius.circular(100)
+                                                ),
+                                                child: Image.asset('assets/check.png'),
+                                              ),
+                                            )
+                                          ],
+                                        ),
+                                      ),
+                                      Text(
+                                        'x${award.cnt}',
+                                        style: const TextStyle(
+                                          fontSize: 12
+                                        ),
+                                      )
+                                    ],
+                                  )
+                                );
+                              },
+                            ),
+                          ],
+                        )
+                      )
+                    ];
+                  },
+                  error: (error, stackTrace) => [],
+                  loading: () => []
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('ログイン日数: ${signInfo.value?.totalSignDay ?? 0}日'),
+                      Text('未ログイン: ${resignInfo.value?.signCntMissed ?? 0}日'),
+                    ],
+                  ),
+                ),
+                WaterfallFlow.builder(
+                  itemCount: awardListData.awards.length,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8
+                  ),
+                  itemBuilder: (context, index) {
+                    final award = awardListData.awards[index];
+                    final signInfoData = signInfo.value;
+
+                    final isReceivable = index == signInfoData?.totalSignDay && signInfoData?.isSign == false;
+                    
+                    return GestureDetector(
+                      onTap: isReceivable ?
+                      () async {
+                        ref.watch(hoYoLABAPINotifierProvider).dailyCheckIn().then((message) {
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: const Text('メッセージ'),
+                                content: Text(
+                                  message == 'OK' ? '${award.name} x${award.cnt}を受け取りました' : message
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('閉じる')
+                                  )
+                                ],
+                              );
+                            },
+                          );
+
+                          ref.invalidate(awardListNotifierProvider);
+                          ref.invalidate(signInfoNotifierProvider);
+                          ref.invalidate(resignInfoProvider);
+                          ref.invalidate(extraAwardNotifierProvider);
+                        });
+                      } :
+                      null,
+                      child: Column(
+                        children: [
+                          AspectRatio(
+                            aspectRatio: 3 / 4,
+                            child: Container(
+                              clipBehavior: Clip.hardEdge,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: isReceivable ? const Color.fromRGBO(211, 125, 67, 1) : const Color.fromRGBO(175, 153, 121, 1),
+                              ),
+                              child: Stack(
+                                children: [
+                                  Column(
+                                    children: [
+                                      AspectRatio(
+                                        aspectRatio: 1,
+                                        child: Container(
+                                          margin: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(40),
+                                            color: Colors.white
+                                          ),
+                                          child: CachedNetworkImage(
+                                            imageUrl: award.icon,
+                                          ),
+                                        ),
+                                      ),
+                                      Text(
+                                        'x${award.cnt}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.normal
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                  if (
+                                    signInfoData?.totalSignDay != null &&
+                                    signInfoData!.totalSignDay >= index + 1
+                                  )
+                                  Center(
+                                    child: Container(
+                                      padding: const EdgeInsets.all(16),
+                                      constraints: const BoxConstraints.expand(),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.5)
+                                      ),
+                                      child: Image.asset('assets/check.png'),
+                                    ),
+                                  )
+                                ],
+                              )
+                            ),
+                          ),
+                          Text('${index + 1}日目')
+                        ],
+                      )
+                    );
+                  },
+                )
+              ],
+            ),
           );
         },
         error: (error, stackTrace) {
@@ -227,6 +317,7 @@ class DailyBonusView extends HookConsumerWidget {
                     ref.invalidate(awardListNotifierProvider);
                     ref.invalidate(signInfoNotifierProvider);
                     ref.invalidate(resignInfoProvider);
+                    ref.invalidate(extraAwardNotifierProvider);
                   },
                   child: const Text('再試行')
                 )

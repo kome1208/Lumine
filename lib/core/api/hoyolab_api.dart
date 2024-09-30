@@ -9,6 +9,7 @@ import 'package:lumine/core/api/model/daily_note_model.dart';
 import 'package:lumine/core/api/model/daily_resign_info_model.dart';
 import 'package:lumine/core/api/model/daily_sign_info_model.dart';
 import 'package:lumine/core/api/model/exchange_code.dart';
+import 'package:lumine/core/api/model/extra_award_model.dart';
 import 'package:lumine/core/api/model/game_record_card_model.dart';
 import 'package:lumine/core/api/model/game_record_character_detail_model.dart';
 import 'package:lumine/core/api/model/game_record_character_list_model.dart';
@@ -797,6 +798,33 @@ class HoYoLAB {
       final data = json.decode(utf8.decode(response.body.runes.toList()));
       if (data['retcode'] == 0) {
         return true;
+      } else {
+        throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
+      }
+    } else {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
+
+  Future<ExtraAwardList> getExtraAward() async {
+    final uri = Uri.parse(_sgHk4eAPIUri)
+    .replace(
+      path: '/event/sol/extra_award',
+      queryParameters: {
+        "lang": "ja-jp",
+        "act_id": "e202102251931481"
+      }
+    );
+
+    final response = await http.get(
+      uri,
+      headers: getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.body.runes.toList()));
+      if (data['retcode'] == 0) {
+        return ExtraAwardList.fromJson(data['data']);
       } else {
         throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
       }
