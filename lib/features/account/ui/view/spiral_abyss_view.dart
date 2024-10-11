@@ -8,20 +8,6 @@ import 'package:lumine/utils/date_formatter.dart';
 import 'package:lumine/widgets/my_card.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
-final List<Map<String, dynamic>> rankMap = [
-  { 'key': 'defeat_rank', 'name': '最多撃破数' },
-  { 'key': 'damage_rank', 'name': '与えた最大ダメージ' },
-  { 'key': 'take_damage_rank', 'name': '受けた最大ダメージ' },
-  { 'key': 'normal_skill_rank', 'name': '元素スキル使用回数' },
-  { 'key': 'energy_skill_rank', 'name': '元素爆発使用回数' },
-];
-
-final List<Map<String, dynamic>> recentInfoMap = [
-  { 'key': 'max_floor', 'name': '最高記録' },
-  { 'key': 'total_star', 'name': '獲得した星' },
-  { 'key': 'total_win_times', 'name': '勝利回数' },
-];
-
 class SpiralAbyssView extends HookConsumerWidget {
   const SpiralAbyssView({super.key});
 
@@ -87,18 +73,43 @@ class _TabContent extends HookConsumerWidget {
                         ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                           title: const Text('最高記録'),
-                          trailing: Text(spiralAbyssData.maxFloor, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
+                          trailing: Text(
+                            spiralAbyssData.maxFloor,
+                            style: const TextStyle(
+                              fontSize: 16
+                            )
+                          ),
                         ),
                         ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                           title: const Text('獲得した星'),
-                          trailing: Text('${spiralAbyssData.totalStar}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
+                          trailing: Text(
+                            '${spiralAbyssData.totalStar}',
+                            style: const TextStyle(
+                              fontSize: 16
+                            )
+                          ),
+                        ),
+                        ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                          title: const Text('挑戦回数'),
+                          trailing: Text(
+                            '${spiralAbyssData.totalBattleTimes}',
+                            style: const TextStyle(
+                              fontSize: 16
+                            ),
+                          ),
                         ),
                         ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                           title: const Text('勝利回数'),
-                          trailing: Text('${spiralAbyssData.totalWinTimes}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
-                        )
+                          trailing: Text(
+                            '${spiralAbyssData.totalWinTimes}',
+                            style: const TextStyle(
+                              fontSize: 16
+                            )
+                          ),
+                        ),
                       ]
                     )
                   ),
@@ -124,23 +135,12 @@ class _TabContent extends HookConsumerWidget {
                           ),
                           trailing: Padding(
                             padding: const EdgeInsets.only(top: 16),
-                            child: Text('${spiralAbyssData.defeatRank.first.value}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
-                          ),
-                        ),
-                        ListTile(
-                          contentPadding: const EdgeInsets.only(left: 4, right: 16),
-                          leading: CachedNetworkImage(
-                            imageUrl: spiralAbyssData.takeDamageRank.first.avatarIcon,
-                            width: 56,
-                            height: 56,
-                          ),
-                          title: const Padding(
-                            padding: EdgeInsets.only(top: 16),
-                            child: Text('与えた最大ダメージ'),
-                          ),
-                          trailing: Padding(
-                            padding: const EdgeInsets.only(top: 16),
-                            child: Text('${spiralAbyssData.takeDamageRank.first.value}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
+                            child: Text(
+                              '${spiralAbyssData.defeatRank.first.value}',
+                              style: const TextStyle(
+                                fontSize: 16
+                              )
+                            ),
                           ),
                         ),
                         ListTile(
@@ -152,11 +152,37 @@ class _TabContent extends HookConsumerWidget {
                           ),
                           title: const Padding(
                             padding: EdgeInsets.only(top: 16),
+                            child: Text('与えた最大ダメージ'),
+                          ),
+                          trailing: Padding(
+                            padding: const EdgeInsets.only(top: 16),
+                            child: Text(
+                              '${spiralAbyssData.damageRank.first.value}',
+                              style: const TextStyle(
+                                fontSize: 16
+                              )
+                            ),
+                          ),
+                        ),
+                        ListTile(
+                          contentPadding: const EdgeInsets.only(left: 4, right: 16),
+                          leading: CachedNetworkImage(
+                            imageUrl: spiralAbyssData.takeDamageRank.first.avatarIcon,
+                            width: 56,
+                            height: 56,
+                          ),
+                          title: const Padding(
+                            padding: EdgeInsets.only(top: 16),
                             child: Text('受けた最大ダメージ'),
                           ),
                           trailing: Padding(
                             padding: const EdgeInsets.only(top: 16),
-                            child: Text('${spiralAbyssData.damageRank.first.value}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
+                            child: Text(
+                              '${spiralAbyssData.takeDamageRank.first.value}',
+                              style: const TextStyle(
+                                fontSize: 16
+                              )
+                            ),
                           ),
                         ),
                         ListTile(
@@ -172,7 +198,12 @@ class _TabContent extends HookConsumerWidget {
                           ),
                           trailing: Padding(
                             padding: const EdgeInsets.only(top: 16),
-                            child: Text('${spiralAbyssData.normalSkillRank.first.value}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
+                            child: Text(
+                              '${spiralAbyssData.normalSkillRank.first.value}',
+                              style: const TextStyle(
+                                fontSize: 16
+                              )
+                            ),
                           ),
                         ),
                         ListTile(
@@ -188,7 +219,12 @@ class _TabContent extends HookConsumerWidget {
                           ),
                           trailing: Padding(
                             padding: const EdgeInsets.only(top: 16),
-                            child: Text('${spiralAbyssData.energySkillRank.first.value}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
+                            child: Text(
+                              '${spiralAbyssData.energySkillRank.first.value}',
+                              style: const TextStyle(
+                                fontSize: 16
+                              )
+                            ),
                           ),
                         )
                       ],
@@ -212,7 +248,12 @@ class _TabContent extends HookConsumerWidget {
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                               leading: Image.asset('assets/tower_star_active.png', width: 32, height: 32),
                               title: const Text('獲得した星'),
-                              trailing: Text('${floor.star}/${floor.maxStar}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)),
+                              trailing: Text(
+                                '${floor.star}/${floor.maxStar}',
+                                style: const TextStyle(
+                                  fontSize: 16
+                                )
+                              ),
                             ),
                             ...floor.levels.map((level) {
                               return Column(
@@ -223,12 +264,14 @@ class _TabContent extends HookConsumerWidget {
                                     subtitle: Text('${DateFormatter.formatDate(int.parse(level.battles.first.timestamp) * 1000, 'yyyy.MM.dd HH:mm:ss')}'),
                                     trailing: Wrap(
                                       direction: Axis.horizontal,
-                                      children: [
-                                        for (int i = 0; i < level.star; i++)
-                                        Image.asset('assets/tower_star_active.png', width: 24, height: 24),
-                                        for (int i = 0; i < level.maxStar - level.star; i++)
-                                        Image.asset('assets/tower_star.png', width: 24, height: 24),
-                                      ]
+                                      children: List.generate(level.maxStar, (index) =>
+                                        Image.asset(
+                                          level.star > index ?
+                                          'assets/tower_star_active.png' :
+                                          'assets/tower_star.png',
+                                          width: 24, height: 24
+                                        )
+                                      )
                                     ),
                                   ),
                                   ...level.battles.map((battle) {
