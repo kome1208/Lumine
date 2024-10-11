@@ -258,10 +258,7 @@ class _CharacterDetail extends HookConsumerWidget {
                   ],
                 ),
                 subtitle: Row(
-                  children: [
-                    for (int i = 0; i < character.rarity; i++)
-                    Image.asset('assets/star.png', width: 16, height: 16)
-                  ],
+                  children: List.generate(character.rarity, (index) => Image.asset('assets/star.png', width: 16, height: 16))
                 ),
                 trailing: Wrap(
                   direction: Axis.horizontal,
