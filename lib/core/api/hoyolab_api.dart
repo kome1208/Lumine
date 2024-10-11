@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:lumine/core/api/model/achievement_model.dart';
 import 'package:lumine/core/api/model/brief_model.dart';
 import 'package:lumine/core/api/model/char_master_model.dart';
 import 'package:lumine/core/api/model/checkin_makeup_task_list_model.dart';
@@ -825,6 +826,36 @@ class HoYoLAB {
       final data = json.decode(utf8.decode(response.body.runes.toList()));
       if (data['retcode'] == 0) {
         return ExtraAwardList.fromJson(data['data']);
+      } else {
+        throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
+      }
+    } else {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
+
+  Future<AchievementData> getAchievements() async {
+    final uri = Uri.parse(_bbsAPIUri)
+    .replace(
+      path: '/game_record/genshin/api/achievement',
+    );
+
+    final Map<String, dynamic> body = {
+      "role_id": "$uid",
+      "server": region
+    };
+
+    final response = await http.post(
+      uri,
+      headers: getHeaders(),
+      body: json.encode(body)
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.body.runes.toList()));
+
+      if (data['retcode'] == 0) {
+        return AchievementData.fromJson(data['data']);
       } else {
         throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
       }

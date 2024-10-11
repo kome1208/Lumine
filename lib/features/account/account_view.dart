@@ -8,6 +8,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/provider/account_provider.dart';
 import 'package:lumine/features/account/data/game_record.dart';
+import 'package:lumine/features/account/ui/view/achievement_view.dart';
 import 'package:lumine/features/account/ui/view/character_list_view.dart';
 import 'package:lumine/features/account/ui/view/resource_data_view.dart';
 import 'package:lumine/features/account/ui/view/role_combat_view.dart';
@@ -212,10 +213,18 @@ class AccountView extends HookConsumerWidget {
                       ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                         title: const Text('アチーブメント'),
-                        trailing: Text(
-                          '${value.stats.achievementNumber}',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)
+                        trailing: Wrap(
+                          alignment: WrapAlignment.end,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              '${value.stats.achievementNumber}',
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal)
+                            ),
+                            const Icon(Icons.chevron_right)
+                          ],
                         ),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AchievementView())),
                       ),
                       ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 16),
