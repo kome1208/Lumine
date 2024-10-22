@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:lumine/core/api/model/achievement_model.dart';
 import 'package:lumine/core/api/model/brief_model.dart';
+import 'package:lumine/core/api/model/calculator_avatar_list_model.dart';
 import 'package:lumine/core/api/model/char_master_model.dart';
 import 'package:lumine/core/api/model/checkin_makeup_task_list_model.dart';
 import 'package:lumine/core/api/model/daily_award_list_model.dart';
 import 'package:lumine/core/api/model/daily_note_model.dart';
 import 'package:lumine/core/api/model/daily_resign_info_model.dart';
 import 'package:lumine/core/api/model/daily_sign_info_model.dart';
+import 'package:lumine/core/api/model/event_list_model.dart';
 import 'package:lumine/core/api/model/exchange_code.dart';
 import 'package:lumine/core/api/model/extra_award_model.dart';
 import 'package:lumine/core/api/model/game_record_card_model.dart';
@@ -16,12 +18,15 @@ import 'package:lumine/core/api/model/game_record_character_detail_model.dart';
 import 'package:lumine/core/api/model/game_record_character_list_model.dart';
 import 'package:lumine/core/api/model/game_record_model.dart';
 import 'package:lumine/core/api/model/hoyolab_api_error.dart';
+import 'package:lumine/core/api/model/month_detail_model.dart';
 import 'package:lumine/core/api/model/month_info_model.dart';
+import 'package:lumine/core/api/model/news_list_model.dart';
+import 'package:lumine/core/api/model/reward_history_model.dart';
 import 'package:lumine/core/api/model/role_combat_model.dart';
 import 'package:lumine/core/api/model/spiral_abyss_model.dart';
 import 'package:lumine/core/api/model/unread_count_model.dart';
 import 'package:lumine/core/api/model/user_notifications_model.dart';
-import 'package:lumine/core/api/model/sync_avatar_model.dart';
+import 'package:lumine/core/api/model/calculator_sync_avatar_list_model.dart';
 
 class HoYoLAB {
   final String ltoken;
@@ -675,7 +680,7 @@ class HoYoLAB {
     }
   }
 
-  Future<SyncAvatarList> getSyncAvatarList ({int? element, int? weapon, bool? isAll}) async {
+  Future<CalculatorSyncAvatarList> getSyncAvatarList ({int? element, int? weapon}) async {
     final uri = Uri.parse(_sgPublicAPIUri).replace(
       path: 'event/calculateos/sync/avatar/list'
     );
@@ -686,12 +691,9 @@ class HoYoLAB {
     };
 
     final Map<String, dynamic> body = {
-      if (isAll != true) ...{
-        "uid": uid,
-        "region": region,
-      },
+      "uid": uid,
+      "region": region,
       "element_attr_ids": [if (element != null) element],
-      if (isAll == true) "is_all": isAll,
       "weapon_cat_ids": [if (weapon != null) weapon],
       "page": 1,
       "size": 200,
@@ -707,7 +709,39 @@ class HoYoLAB {
     if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.body.runes.toList()));
       if (data['retcode'] == 0) {
-        return SyncAvatarList.fromJson(data['data']);
+        return CalculatorSyncAvatarList.fromJson(data['data']);
+      } else {
+        throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
+      }
+    } else {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
+
+  Future<CalculatorAvatarList> getCalculatorAvatarList ({int? element, int? weapon, bool? isAll}) async {
+    final uri = Uri.parse(_sgPublicAPIUri).replace(
+      path: 'event/calculateos/avatar/list'
+    );
+
+    final Map<String, dynamic> body = {
+      "element_attr_ids": [if (element != null) element],
+      "weapon_cat_ids": [if (weapon != null) weapon],
+      "is_all": isAll,
+      "page": 1,
+      "size": 200,
+      "lang": "ja-jp"
+    };
+
+    final response = await http.post(
+      uri,
+      headers: getHeaders(),
+      body: json.encode(body)
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.body.runes.toList()));
+      if (data['retcode'] == 0) {
+        return CalculatorAvatarList.fromJson(data['data']);
       } else {
         throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
       }
@@ -856,6 +890,138 @@ class HoYoLAB {
 
       if (data['retcode'] == 0) {
         return AchievementData.fromJson(data['data']);
+      } else {
+        throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
+      }
+    } else {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
+
+  Future<MonthDetail> getMonthDetail(int month, int page, int type) async {
+    final uri = Uri.parse(_sgHk4eAPIUri)
+    .replace(
+      path: '/event/ysledgeros/month_detail',
+      queryParameters: {
+        "lang": 'ja-jp',
+        "month": '$month',
+        "current_page": '$page',
+        "type": '$type',
+        "region": region,
+        "uid": uid
+      }
+    );
+
+    final response = await http.get(
+      uri,
+      headers: getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.body.runes.toList()));
+      if (data['retcode'] == 0) {
+        return MonthDetail.fromJson(data['data']);
+      } else {
+        throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
+      }
+    } else {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
+
+  Future<EventList> getEventList(int pageSize, [String offset = '0']) async {
+    final uri = Uri.parse(_bbsAPIUri)
+    .replace(
+      path: '/community/community_contribution/wapi/event/list',
+      queryParameters: {
+        "gids": "2",
+        "page_size": "$pageSize",
+        "size": "$pageSize",
+        "offset": offset
+      }
+    );
+
+    final Map<String, String> headers = {
+      ...getHeaders(),
+      "x-rpc-page_info": '{"pageName":"HomeGamePage","pageType":"27","pageId":"","pageArrangement":"Hot","gameId":"2"}',
+      "x-rpc-page_name": 'HomeGamePage',
+      "x-rpc-source_info": '{"sourceName":"","sourceType":"","sourceId":"","sourceArrangement":"","sourceGameId":""}'
+    };
+
+    final response = await http.get(
+      uri,
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.body.runes.toList()));
+      if (data['retcode'] == 0) {
+        return EventList.fromJson(data['data']);
+      } else {
+        throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
+      }
+    } else {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
+
+  Future<NewsList> getNewsList(int type, int pageSize, [int lastId = 0]) async {
+    final uri = Uri.parse(_bbsAPIUri)
+    .replace(
+      path: '/community/post/wapi/getNewsList',
+      queryParameters: {
+        "gids": "2",
+        "last_id": "$lastId",
+        "page_size": "$pageSize",
+        "type": "$type"
+      }
+    );
+
+    final Map<String, String> headers = {
+      ...getHeaders(),
+      "x-rpc-page_info": '{"pageName":"HomeGamePage","pageType":"27","pageId":"","pageArrangement":"Hot","gameId":"2"}',
+      "x-rpc-page_name": 'HomeGamePage',
+      "x-rpc-source_info": '{"sourceName":"","sourceType":"","sourceId":"","sourceArrangement":"","sourceGameId":""}'
+    };
+
+    final response = await http.get(
+      uri,
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.body.runes.toList()));
+      if (data['retcode'] == 0) {
+        return NewsList.fromJson(data['data']);
+      } else {
+        throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
+      }
+    } else {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
+
+  Future<RewardHistory> getRewardHistory(int page, [int pageSize = 10]) async {
+    final uri = Uri.parse(_sgHk4eAPIUri)
+    .replace(
+      path: '/event/sol/award',
+      queryParameters: {
+        "current_page": '$page',
+        "lang": 'ja-jp',
+        "page_size": '$pageSize',
+        "act_id": 'e202102251931481',
+      }
+    );
+
+    final response = await http.get(
+      uri,
+      headers: getHeaders(),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.body.runes.toList()));
+      if (data['retcode'] == 0) {
+        return RewardHistory.fromJson(data['data']);
       } else {
         throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
       }

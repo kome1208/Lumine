@@ -2,47 +2,57 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:intl/intl.dart';
+import 'package:lumine/features/account/data/month_detail_provider.dart';
 import 'package:lumine/features/account/data/month_info_provider.dart';
 import 'package:lumine/widgets/my_card.dart';
 
-Map coinChartInfo = {
-  '0': Colors.grey,
-  '1': Colors.purple,
-  '2': Colors.pink,
-  '3': Colors.yellow,
-  '4': Colors.lightGreen,
-  '5': Colors.blue,
-  '6': Colors.red,
-  '7': Colors.teal
-};
+final currentMonthProvider = StateProvider<int>((ref) => DateTime.now().month);
 
 class ResourceDataView extends HookConsumerWidget {
   const ResourceDataView({super.key});
   
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentMonth = useState(DateTime.now().month);
-    final monthInfo = ref.watch(monthInfoNotifierProvider(currentMonth.value));
+    final currentMonth = ref.watch(currentMonthProvider);
+    final currentMonthNotifier = ref.read(currentMonthProvider.notifier);
+    final monthInfo = ref.watch(monthInfoNotifierProvider(currentMonth));
     
     return Scaffold(
       appBar: AppBar(
         title: const Text('資源データ'),
         actions: [
-          if (monthInfo.value != null) PopupMenuButton(
-            tooltip: '他の期間',
-            icon: const Icon(Icons.calendar_month),
-            onSelected: (value) {
-              currentMonth.value = value;
-            },
-            itemBuilder: (context) {
-              return monthInfo.value!.optionalMonth.map((value) =>
-                PopupMenuItem(
-                  value: value,
-                  child: Text('$value月'),
-                )
-              ).toList();
-            },
-          ),
+          if (monthInfo.value != null) ...[
+            IconButton(
+              tooltip: '詳細を確認',
+              icon: const Icon(Icons.history),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  clipBehavior: Clip.hardEdge,
+                  isScrollControlled: true,
+                  useSafeArea: true,
+                  enableDrag: true,
+                  builder: (context) => const _MonthDetail()
+                );
+              },
+            ),
+            PopupMenuButton(
+              tooltip: '他の期間',
+              icon: const Icon(Icons.calendar_month),
+              onSelected: (value) {
+                currentMonthNotifier.state = value;
+              },
+              itemBuilder: (context) {
+                return monthInfo.value!.optionalMonth.map((value) =>
+                  PopupMenuItem(
+                    value: value,
+                    child: Text('$value月'),
+                  )
+                ).toList();
+              },
+            ),
+          ]
         ],
       ),
       body: monthInfo.when(
@@ -210,6 +220,204 @@ class ResourceDataView extends HookConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator())
       )
+    );
+  }
+}
+
+class _MonthDetail extends HookConsumerWidget {
+  const _MonthDetail();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close)
+          ),
+          title: const Text('獲得記録'),
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: '原石'),
+              Tab(text: 'モラ')
+            ]
+          ),
+        ),
+        body: const TabBarView(
+          children: [
+            _RecordTable(1),
+            _RecordTable(2),
+          ]
+        )
+      )
+    );
+  }
+}
+
+class _RecordTable extends HookConsumerWidget {
+  final int type;
+  const _RecordTable(this.type);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    useAutomaticKeepAlive(wantKeepAlive: true);
+    final currentMonth = ref.watch(currentMonthProvider);
+    final monthDetail = ref.read(monthDetailNotifierProvider(currentMonth, type).notifier);
+    final monthDetailNotifier = ref.watch(monthDetailNotifierProvider(currentMonth, type));
+
+    return Column(
+      children: [
+        Table(
+          columnWidths: const {
+            0: IntrinsicColumnWidth(flex: 1),
+            1: IntrinsicColumnWidth(flex: 2),
+            2: IntrinsicColumnWidth(flex: 1),
+          },
+          border: TableBorder.all(color: Theme.of(context).colorScheme.outline),
+          children: const [
+            TableRow(
+              children: [
+                TableCell(
+                  child: SizedBox(
+                    height: 30,
+                    child: Center(
+                      child: Text('時間')
+                    ),
+                  )
+                ),
+                TableCell(
+                  child: SizedBox(
+                    height: 30,
+                    child: Center(
+                      child: Text('入手方法')
+                    ),
+                  )
+                ),
+                TableCell(
+                  child: SizedBox(
+                    height: 30,
+                    child: Center(
+                      child: Text('数量')
+                    ),
+                  )
+                ),
+              ]
+            ),
+          ],
+        ),
+        Expanded(
+          child: monthDetailNotifier.maybeWhen(
+            skipLoadingOnRefresh: true,
+            skipLoadingOnReload: true,
+            data: (monthDetailData) {
+              return NotificationListener<ScrollNotification>(
+                onNotification: (ScrollNotification scrollInfo) {
+                  if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+                    monthDetail.fetchMore();
+                  }
+                  return false;
+                },
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Table(
+                        border: TableBorder.all(color: Theme.of(context).colorScheme.outline),
+                        columnWidths: const {
+                          0: IntrinsicColumnWidth(flex: 1),
+                          1: IntrinsicColumnWidth(flex: 2),
+                          2: IntrinsicColumnWidth(flex: 1),
+                        },
+                        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+                        children: [
+                          ...monthDetailData.list.map((action) =>
+                            TableRow(
+                              children: [
+                                TableCell(
+                                  child: SizedBox(
+                                    height: 50,
+                                    child: Center(
+                                      child: Text(DateFormat('MM/dd HH:mm').format(DateTime.parse(action.time).add(const Duration(hours: 1))))
+                                    ),
+                                  )
+                                ),
+                                TableCell(
+                                  child: SizedBox(
+                                    height: 50,
+                                    child: Center(
+                                      child: Text(action.action)
+                                    ),
+                                  )
+                                ),
+                                TableCell(
+                                  child: SizedBox(
+                                    height: 50,
+                                    child: Center(
+                                      child: Text('${action.num}')
+                                    ),
+                                  )
+                                ),
+                              ]
+                            ),
+                          )
+                        ]
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: monthDetail.noMoreRecords ?
+                        const Text('これ以上の記録はありません') :
+                        const CircularProgressIndicator(),
+                      )
+                    ],
+                  ),
+                )
+              );
+            },
+            error: (error, stackTrace) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset('assets/images/icons/error_icon.png'),
+                    Text(error.toString()),
+                    TextButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text('エラー詳細'),
+                              content: SingleChildScrollView(
+                                child: Text(stackTrace.toString())
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Clipboard.setData(ClipboardData(text: stackTrace.toString()));
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text('コピー')
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('閉じる')
+                                )
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      child: const Text('エラー詳細')
+                    ),
+                  ],
+                ),
+              );
+            },
+            orElse: () => const Center(child: CircularProgressIndicator()),
+          )
+        )
+      ],
     );
   }
 }

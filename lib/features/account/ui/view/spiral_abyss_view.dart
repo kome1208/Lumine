@@ -51,6 +51,9 @@ class _TabContent extends HookConsumerWidget {
 
     return spiralAbyss.when(
       data: (spiralAbyssData) {
+        if (spiralAbyssData.totalBattleTimes <= 0) {
+          return const Center(child: Text('戦績データがありません'));
+        }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,

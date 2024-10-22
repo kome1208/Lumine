@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/api/model/game_record_character_detail_model.dart';
 import 'package:lumine/features/account/data/game_record_character_detail_provider.dart';
 import 'package:lumine/features/account/data/game_record_character_list_provider.dart';
+import 'package:lumine/widgets/divider_with_text.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 const Map<String, dynamic> elementIcons = {
@@ -21,6 +22,10 @@ const Map<String, dynamic> elementIcons = {
   'Cryo': 'assets/element_icons/cryo.png'
 };
 
+final characterSortTypeProvider = StateProvider<int>((ref) => CharacterSortType.def.type);
+final characterListElementFilterProvider = StateProvider<List<String>>((ref) => []);
+final characterListWeaponFilterProvider = StateProvider<List<int>>((ref) => []);
+
 class CharacterListView extends HookConsumerWidget {
   final int? roleId;
 
@@ -29,11 +34,15 @@ class CharacterListView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final characterSortType = useState(CharacterSortType.def.type);
+    final characterSortType = ref.watch(characterSortTypeProvider);
+    final characterSortTypeNotifier = ref.read(characterSortTypeProvider.notifier);
+    final characterListElementFilter = ref.watch(characterListElementFilterProvider);
+    final characterListWeaponFilter = ref.watch(characterListWeaponFilterProvider);
+
     final characterList = ref.watch(gameRecordCharacterListProvider(
-      characterSortType.value,
-      null,
-      null,
+      characterSortType,
+      characterListElementFilter,
+      characterListWeaponFilter,
     ));
 
     Future<void> showCharacterSheet(int id) {
@@ -60,11 +69,26 @@ class CharacterListView extends HookConsumerWidget {
       appBar: AppBar(
         title: const Text('キャラクター'),
         actions: [
+          IconButton(
+            tooltip: 'フィルター',
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                useSafeArea: true,
+                enableDrag: true,
+                showDragHandle: true,
+                builder: (context) {
+                  return const _FilterView();
+                },
+              );
+            },
+            icon: const Icon(Icons.filter_alt)
+          ),
           PopupMenuButton(
             tooltip: '並べ替え',
             icon: const Icon(Icons.sort),
             onSelected: (value) {
-              characterSortType.value = value;
+              characterSortTypeNotifier.state = value;
             },
             itemBuilder: (context) {
               return CharacterSortType.values.map((value) =>
@@ -775,6 +799,103 @@ class _CharacterDetail extends HookConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator())
       ),
+    );
+  }
+}
+
+class _FilterView extends HookConsumerWidget {
+  const _FilterView();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final elementFilters = useState<List<String>>([
+      ...ref.watch(characterListElementFilterProvider)
+    ]);
+    final weaponFilters = useState<List<int>>([
+      ...ref.watch(characterListWeaponFilterProvider)
+    ]);
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: DividerWithText(label: '元素')
+              ),
+              ...CharacterListElementFilter.values.map((element) =>
+                CheckboxListTile(
+                  title: Text(element.title),
+                  value: elementFilters.value.contains(element.value),
+                  onChanged: (value) {
+                    final List<String> list = List.from(elementFilters.value);
+
+                    switch (value) {
+                      case true:
+                        list.add(element.value);
+                        break;
+                      case false:
+                        list.remove(element.value);
+                        break;
+                      default:
+                    }
+
+                    elementFilters.value = list;
+                  }
+                )
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: DividerWithText(label: '武器')
+              ),
+              ...CharacterListWeaponFilter.values.map((weapon) =>
+                CheckboxListTile(
+                  title: Text(weapon.title),
+                  value: weaponFilters.value.contains(weapon.value),
+                  onChanged: (value) {
+                    final List<int> list = List.from(weaponFilters.value);
+
+                    switch (value) {
+                      case true:
+                        list.add(weapon.value);
+                        break;
+                      case false:
+                        list.remove(weapon.value);
+                        break;
+                      default:
+                    }
+
+                    weaponFilters.value = list;
+                  }
+                )
+              ),
+            ]
+          )
+        ),
+        const Divider(height: 1),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: () {
+                elementFilters.value = [];
+                weaponFilters.value = [];
+              },
+              child: const Text('リセット')
+            ),
+            TextButton(
+              onPressed: () {
+                ref.read(characterListElementFilterProvider.notifier).state = elementFilters.value;
+                ref.read(characterListWeaponFilterProvider.notifier).state = weaponFilters.value;
+                Navigator.pop(context);
+              },
+              child: const Text('決定')
+            )
+          ]
+        )
+      ]
     );
   }
 }

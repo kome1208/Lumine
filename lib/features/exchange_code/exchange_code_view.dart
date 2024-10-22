@@ -35,34 +35,50 @@ class ExchangeCodeView extends HookConsumerWidget {
                 decoration: InputDecoration(
                   border: const OutlineInputBorder(),
                   label: const Text('交換コード'),
-                  suffixIcon: IconButton(
-                    onPressed: () async {
-                      final String code = editingController.text;
+                  suffixIcon: Wrap(
+                    children: [
+                      IconButton(
+                        onPressed: () async {
+                          final clipboard = await Clipboard.getData('text/plain');
 
-                      editingController.clear();
+                          if (clipboard?.text != null) {
+                            editingController.text = clipboard!.text!;
+                          }
+                        },
+                        icon: const Icon(Icons.assignment),
+                        tooltip: 'クリップボードから貼り付け',
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          final String code = editingController.text;
 
-                      ref.read(savedCodesNotifierProvider.notifier).apply(code).then((message) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('交換結果'),
-                              content: Text(message),
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text('閉じる')
-                                )
-                              ],
+                          editingController.clear();
+
+                          ref.read(savedCodesNotifierProvider.notifier).apply(code).then((message) {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text('交換結果'),
+                                  content: Text(message),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                      },
+                                      child: const Text('閉じる')
+                                    )
+                                  ],
+                                );
+                              },
                             );
-                          },
-                        );
-                      });
-                    },
-                    icon: const Icon(Icons.arrow_forward)
-                  ),
+                          });
+                        },
+                        icon: const Icon(Icons.arrow_forward),
+                        tooltip: '交換'
+                      ),
+                    ]
+                  )
                 ),
               )
             ),
@@ -71,43 +87,29 @@ class ExchangeCodeView extends HookConsumerWidget {
                 vertical: 8,
                 horizontal: 16
               ),
-              child: Wrap(
-                runAlignment: WrapAlignment.spaceBetween,
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  const Text(
-                    '交換履歴',
-                    style: TextStyle(
-                      fontSize: 20
-                    )
+              child: SegmentedButton<ExchangeCodeSortType>(
+                segments: const [
+                  ButtonSegment(
+                    value: ExchangeCodeSortType.all,
+                    icon: Icon(Icons.list_outlined),
+                    label: Text('全て'),
                   ),
-                  const SizedBox(width: 32),
-                  SegmentedButton<ExchangeCodeSortType>(
-                    segments: const [
-                      ButtonSegment(
-                        value: ExchangeCodeSortType.all,
-                        icon: Icon(Icons.list_outlined),
-                        label: Text('全て'),
-                      ),
-                      ButtonSegment(
-                        value: ExchangeCodeSortType.success,
-                        icon: Icon(Icons.checklist_outlined),
-                        label: Text('成功')
-                      ),
-                      ButtonSegment(
-                        value: ExchangeCodeSortType.failed,
-                        icon: Icon(Icons.warning_amber_outlined),
-                        label: Text('失敗')
-                      ),
-                    ],
-                    selected: {sortType.value},
-                    onSelectionChanged: (Set<ExchangeCodeSortType> newSelection) {
-                      sortType.value = newSelection.first;
-                    },
-                  )
+                  ButtonSegment(
+                    value: ExchangeCodeSortType.success,
+                    icon: Icon(Icons.checklist_outlined),
+                    label: Text('成功')
+                  ),
+                  ButtonSegment(
+                    value: ExchangeCodeSortType.failed,
+                    icon: Icon(Icons.warning_amber_outlined),
+                    label: Text('失敗')
+                  ),
                 ],
-              ),
+                selected: {sortType.value},
+                onSelectionChanged: (Set<ExchangeCodeSortType> newSelection) {
+                  sortType.value = newSelection.first;
+                },
+              )
             ),
             
             ...ref.watch(savedCodesNotifierProvider).where((item) {

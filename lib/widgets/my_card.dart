@@ -26,7 +26,7 @@ class MyCard extends StatelessWidget {
       clipBehavior: clipBehavior ?? Clip.none,
       decoration: BoxDecoration(
         color: backgroundColor ?? Theme.of(context).colorScheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(20.0),
+        borderRadius: BorderRadius.circular(16),
         border: border
       ),
       child: child

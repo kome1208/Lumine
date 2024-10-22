@@ -46,6 +46,8 @@ class HomeView extends HookConsumerWidget  {
         onRefresh: () async {
           ref.read(dailyNoteNotifierProvider.notifier).refresh();
           ref.read(exchangeCodeNotifierProvider.notifier).refresh();
+          ref.read(awardListNotifierProvider.notifier).refresh();
+          ref.read(signInfoNotifierProvider.notifier).refresh();
         },
         child: dailyNote.when(
           data: (value) {
@@ -404,7 +406,9 @@ class HomeView extends HookConsumerWidget  {
                                   ),
                                   title: const Text('魔神任務', style: TextStyle(fontSize: 18)),
                                   subtitle: Text(
-                                    value.archonQuestProgress.list.isNotEmpty ? value.archonQuestProgress.list.first!.chapterNum : '完了',
+                                    value.archonQuestProgress.list.isNotEmpty ?
+                                    value.archonQuestProgress.list.first!.chapterNum :
+                                    '完了',
                                     style: const TextStyle(fontSize: 16),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -420,7 +424,15 @@ class HomeView extends HookConsumerWidget  {
                                                 contentPadding: const EdgeInsets.all(0),
                                                 title: Text(quest?.chapterTitle ?? '?', style: const TextStyle(fontSize: 20)),
                                                 subtitle: Text(quest?.chapterNum ?? '?', style: const TextStyle(fontSize: 16)),
-                                                trailing: Text(quest?.status == 'StatusNotOpen' ? '未開放' : '解放済み', style: const TextStyle(fontSize: 16)),
+                                                trailing: Text(
+                                                  switch (quest?.status) {
+                                                    'StatusNotOpen' => '未開放',
+                                                    'StatusOngoing' => '進行中',
+                                                    'StatusOpen' => '解放済み',
+                                                    _ => '${quest?.status}'
+                                                  },
+                                                  style: const TextStyle(fontSize: 16)
+                                                ),
                                               );
                                             }).toList()
                                           ),

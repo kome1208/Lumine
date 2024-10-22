@@ -359,6 +359,7 @@ class _TabContent extends HookConsumerWidget {
                                   context: context,
                                   isScrollControlled: true,
                                   useSafeArea: true,
+                                  clipBehavior: Clip.hardEdge,
                                   builder: (context) {
                                     return _EnemyDetails(roundData: round);
                                   }

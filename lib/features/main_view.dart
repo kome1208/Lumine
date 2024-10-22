@@ -9,8 +9,7 @@ import 'package:lumine/features/account/account_view.dart';
 import 'package:lumine/features/home/home_view.dart';
 import 'package:lumine/features/menu/menu_view.dart';
 import 'package:lumine/features/menu/ui/view/test_view.dart';
-import 'package:lumine/features/message/data/unread_count_notifier_provider.dart';
-import 'package:lumine/features/message/message_list_view.dart';
+import 'package:lumine/features/announcement/announcement_view.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -21,12 +20,11 @@ class MainView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIndex = useState(0);
     final pageController = usePageController();
-    final unreadCount = ref.watch(unreadCountNotifierProvider);
 
     const pageList = [
       HomeView(),
       AccountView(),
-      MessageListView(),
+      AnnouncementView(),
       MenuView(),
       if (kDebugMode) TestView()
     ];
@@ -76,7 +74,7 @@ class MainView extends HookConsumerWidget {
           );
         }
       } catch (error) {
-        if (!context.mounted) return;
+        if (!context.mounted || kDebugMode) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('アップデートの確認中にエラーが発生しました。'),
@@ -112,28 +110,24 @@ class MainView extends HookConsumerWidget {
       ),
       bottomNavigationBar: NavigationBar(
         height: 70,
-        destinations: [
-          const NavigationDestination(
+        destinations: const [
+          NavigationDestination(
             icon: Icon(Icons.home),
             label: 'ホーム',
           ),
-          const NavigationDestination(
+          NavigationDestination(
             icon: Icon(Icons.account_circle),
             label: 'アカウント',
           ),
           NavigationDestination(
-            icon: Badge.count(
-              isLabelVisible: unreadCount.valueOrNull?.total == 0 ? false : true,
-              count: unreadCount.valueOrNull?.total ?? 0,
-              child: const Icon(Icons.notifications),
-            ),
-            label: 'メッセージ',
+            icon: Icon(Icons.announcement),
+            label: '公式情報',
           ),
-          const NavigationDestination(
+          NavigationDestination(
             icon: Icon(Icons.menu),
             label: 'メニュー',
           ),
-          if (kDebugMode) const NavigationDestination(
+          if (kDebugMode) NavigationDestination(
             icon: Icon(Icons.bug_report),
             label: 'Test'
           )
