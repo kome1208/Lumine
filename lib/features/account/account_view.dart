@@ -7,12 +7,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/provider/account_provider.dart';
+import 'package:lumine/core/router/router.dart';
 import 'package:lumine/features/account/data/game_record.dart';
-import 'package:lumine/features/account/ui/view/achievement_view.dart';
-import 'package:lumine/features/account/ui/view/character_list_view.dart';
-import 'package:lumine/features/account/ui/view/resource_data_view.dart';
-import 'package:lumine/features/account/ui/view/role_combat_view.dart';
-import 'package:lumine/features/account/ui/view/spiral_abyss_view.dart';
+import 'package:lumine/features/account/character_detail/character_detail_view.dart';
 
 final Map<String, dynamic> elementIcons = {
   'Anemo': 'assets/element_icons/anemo.png',
@@ -95,7 +92,7 @@ class AccountView extends HookConsumerWidget {
                           title: const Text('すべてのキャラクター', style: TextStyle(fontSize: 14)),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => const CharacterListView()));
+                            const CharacterListRoute().push(context);
                           },
                         ),
                         SingleChildScrollView(
@@ -150,7 +147,19 @@ class AccountView extends HookConsumerWidget {
                                   )
                                 ),
                                 onTap: () {
-                                  Navigator.push(context, MaterialPageRoute(builder: (context) => CharacterListView(roleId: item.id)));
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    useSafeArea: true,
+                                    enableDrag: true,
+                                    clipBehavior: Clip.hardEdge,
+                                    builder: (context) {
+                                      return SizedBox(
+                                        height: MediaQuery.of(context).size.height * 0.9,
+                                        child: CharacterDetailView(id: item.id)
+                                      );
+                                    },
+                                  );
                                 },
                               );
                             }).toList(),
@@ -225,7 +234,7 @@ class AccountView extends HookConsumerWidget {
                               const Icon(Icons.chevron_right)
                             ],
                           ),
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AchievementView())),
+                          onTap: () => const AchievementRoute().push(context),
                         ),
                         ListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -258,7 +267,7 @@ class AccountView extends HookConsumerWidget {
                             ],
                           ),
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => const SpiralAbyssView()));
+                            const SpiralAbyssRoute().push(context);
                           },
                         ),
                         ListTile(
@@ -276,7 +285,7 @@ class AccountView extends HookConsumerWidget {
                             ],
                           ),
                           onTap: value.stats.roleCombat.isUnlock ?
-                          () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RoleCombatView())) :
+                          () => const RoleCombatRoute().push(context) :
                           null,
                         ),
                         ListTile(
@@ -284,7 +293,7 @@ class AccountView extends HookConsumerWidget {
                           title: const Text('資源データ'),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => const ResourceDataView()));
+                            const ResourceDataRoute().push(context);
                           }
                         ),
                       ],

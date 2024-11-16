@@ -802,6 +802,9 @@ class HomeView extends HookConsumerWidget  {
                     TextButton(
                       onPressed: () {
                         ref.read(dailyNoteNotifierProvider.notifier).refresh();
+                        ref.read(exchangeCodeNotifierProvider.notifier).refresh();
+                        ref.read(awardListNotifierProvider.notifier).refresh();
+                        ref.read(signInfoNotifierProvider.notifier).refresh();
                       },
                       child: const Text('再試行')
                     ),

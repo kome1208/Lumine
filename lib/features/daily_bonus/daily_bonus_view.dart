@@ -181,7 +181,10 @@ class DailyBonusView extends HookConsumerWidget {
                                   isScrollControlled: true,
                                   clipBehavior: Clip.hardEdge,
                                   builder: (context) {
-                                    return const _CheckinMakeupView();
+                                    return SizedBox(
+                                      height: MediaQuery.of(context).size.height * 0.9,
+                                      child: const _CheckinMakeupView()
+                                    );
                                   },
                                 );
                               },
@@ -520,7 +523,46 @@ class _CheckinMakeupView extends ConsumerWidget {
             ],
           );
         },
-        error: (error, stackTrace) => const Text('aaa'),
+        error: (error, stackTrace) => Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/icons/error_icon.png'),
+            Text(error.toString()),
+            TextButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: const Text('エラー詳細'),
+                      content: SingleChildScrollView(child: Text(stackTrace.toString())),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: stackTrace.toString()));
+                            Navigator.pop(context);
+                          },
+                          child: const Text('コピー')
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('閉じる')
+                        )
+                      ],
+                    );
+                  },
+                );
+              },
+              child: const Text('エラー詳細')
+            ),
+            TextButton(
+              onPressed: () {
+                ref.read(resignInfoNotifierProvider.notifier).refresh();
+              },
+              child: const Text('再試行')
+            )
+          ],
+        ),
         loading: () => const Center(child: CircularProgressIndicator())
       )
     );

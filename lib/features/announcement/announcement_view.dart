@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/features/announcement/data/event_list_provider.dart';
@@ -79,7 +80,7 @@ class _EventListView extends HookConsumerWidget {
 
                     if (event.status == 3) {
                       statusColor = Colors.lightGreen;
-                      statusMessage = '${DateFormatter.formatDate(int.parse(event.end) * 1000, 'M/dd')}に終了';
+                      statusMessage = '${DateFormatter.formatDate(int.parse(event.end) * 1000, 'M/d')}に終了';
                     } else if (event.status == 4) {
                       statusColor = Colors.grey;
                       statusMessage = '終了';
@@ -159,9 +160,46 @@ class _EventListView extends HookConsumerWidget {
           )
         );
       },
-      error: (error, stackTrace) {
-        return Text(error.toString());
-      },
+      error: (error, stackTrace) => Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset('assets/images/icons/error_icon.png'),
+          Text(error.toString()),
+          TextButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('エラー詳細'),
+                    content: SingleChildScrollView(child: Text(stackTrace.toString())),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: stackTrace.toString()));
+                          Navigator.pop(context);
+                        },
+                        child: const Text('コピー')
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('閉じる')
+                      )
+                    ],
+                  );
+                },
+              );
+            },
+            child: const Text('エラー詳細')
+          ),
+          TextButton(
+            onPressed: () {
+              eventListProvider.refresh();
+            },
+            child: const Text('再試行')
+          )
+        ],
+      ),
       loading: () => const Center(child: CircularProgressIndicator())
     );
   }
@@ -225,9 +263,46 @@ class _NoticeListView extends HookConsumerWidget {
           )
         );
       },
-      error: (error, stackTrace) {
-        return Center(child: Text(error.toString()));
-      },
+      error: (error, stackTrace) => Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset('assets/images/icons/error_icon.png'),
+          Text(error.toString()),
+          TextButton(
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('エラー詳細'),
+                    content: SingleChildScrollView(child: Text(stackTrace.toString())),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: stackTrace.toString()));
+                          Navigator.pop(context);
+                        },
+                        child: const Text('コピー')
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('閉じる')
+                      )
+                    ],
+                  );
+                },
+              );
+            },
+            child: const Text('エラー詳細')
+          ),
+          TextButton(
+            onPressed: () {
+              noticeListProvider.refresh();
+            },
+            child: const Text('再試行')
+          )
+        ],
+      ),
       loading: () => const Center(child: CircularProgressIndicator())
     );
   }

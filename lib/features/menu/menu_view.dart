@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lumine/features/exchange_code/exchange_code_view.dart';
-import 'package:lumine/features/calendar/calendar_view.dart';
-import 'package:lumine/features/daily_bonus/daily_bonus_view.dart';
+import 'package:lumine/core/provider/app_update_provider.dart';
+import 'package:lumine/core/provider/package_info.dart';
+import 'package:lumine/core/router/router.dart';
 import 'package:lumine/features/menu/ui/view/about_app_view.dart';
 import 'package:lumine/features/menu/ui/view/test_view.dart';
 import 'package:lumine/features/settings/settings_view.dart';
@@ -15,6 +15,8 @@ class MenuView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final packageInfo = ref.watch(packageInfoProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('メニュー')
@@ -23,7 +25,7 @@ class MenuView extends ConsumerWidget {
         children: [
           ListTile(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const DailyBonusView()));
+              const DailyBonusRoute().push(context);
             },
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             leading: const Icon(Icons.assignment_turned_in),
@@ -32,7 +34,7 @@ class MenuView extends ConsumerWidget {
           ),
           ListTile(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const ExchangeCodeView()));
+              const ExchangeCodeRoute().push(context);
             },
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             leading: const Icon(Icons.card_giftcard_rounded),
@@ -41,7 +43,7 @@ class MenuView extends ConsumerWidget {
           ),
           ListTile(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const CalendarView()));
+              const CalendarRoute().push(context);
             },
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             leading: const Icon(Icons.calendar_month_rounded),
@@ -99,7 +101,15 @@ class MenuView extends ConsumerWidget {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             leading: const Icon(Icons.info_outline),
             title: const Text('アプリについて'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: Badge(
+              isLabelVisible: ref.watch(appUpdateNotifierProvider).when(
+                data: (update) => update.buildNumber > int.parse(packageInfo.buildNumber) ? true : false,
+                error: (e, s) => false,
+                loading: () => false
+              ),
+              smallSize: 12,
+              child: const Icon(Icons.chevron_right)
+            ),
           ),
           if (kDebugMode)
           ListTile(

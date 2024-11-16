@@ -1,32 +1,35 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:lumine/core/api/model/achievement_model.dart';
-import 'package:lumine/core/api/model/brief_model.dart';
-import 'package:lumine/core/api/model/calculator_avatar_list_model.dart';
-import 'package:lumine/core/api/model/char_master_model.dart';
-import 'package:lumine/core/api/model/checkin_makeup_task_list_model.dart';
-import 'package:lumine/core/api/model/daily_award_list_model.dart';
-import 'package:lumine/core/api/model/daily_note_model.dart';
-import 'package:lumine/core/api/model/daily_resign_info_model.dart';
-import 'package:lumine/core/api/model/daily_sign_info_model.dart';
-import 'package:lumine/core/api/model/event_list_model.dart';
-import 'package:lumine/core/api/model/exchange_code.dart';
-import 'package:lumine/core/api/model/extra_award_model.dart';
-import 'package:lumine/core/api/model/game_record_card_model.dart';
-import 'package:lumine/core/api/model/game_record_character_detail_model.dart';
-import 'package:lumine/core/api/model/game_record_character_list_model.dart';
-import 'package:lumine/core/api/model/game_record_model.dart';
+import 'package:lumine/core/api/model/achievement_model.dart' show AchievementData;
+import 'package:lumine/core/api/model/act_calendar_model.dart' show ActCalendar;
+import 'package:lumine/core/api/model/brief_model.dart' show UserBrief;
+import 'package:lumine/core/api/model/calculator_avatar_list_model.dart' show CalculatorAvatarList;
+import 'package:lumine/core/api/model/calendar_model.dart' show Calendar;
+import 'package:lumine/core/api/model/char_master_model.dart' show CharMaster;
+import 'package:lumine/core/api/model/checkin_makeup_task_list_model.dart' show CheckinMakeupTaskList;
+import 'package:lumine/core/api/model/daily_award_list_model.dart' show DailyAwardList;
+import 'package:lumine/core/api/model/daily_note_model.dart' show DailyNote;
+import 'package:lumine/core/api/model/daily_resign_info_model.dart' show DailyResignInfo;
+import 'package:lumine/core/api/model/daily_sign_info_model.dart' show DailySignInfo;
+import 'package:lumine/core/api/model/event_list_model.dart' show EventList;
+import 'package:lumine/core/api/model/exchange_code.dart' show ExchangeGroup;
+import 'package:lumine/core/api/model/extra_award_model.dart' show ExtraAwardList;
+import 'package:lumine/core/api/model/game_record_card_model.dart' show GameRecordCard;
+import 'package:lumine/core/api/model/game_record_character_detail_model.dart' show GameRecordCharacterDetail;
+import 'package:lumine/core/api/model/game_record_character_list_model.dart' show GameRecordCharacterList;
+import 'package:lumine/core/api/model/game_record_model.dart' show GameRecord;
+import 'package:lumine/core/api/model/hover_model.dart' show Hover;
 import 'package:lumine/core/api/model/hoyolab_api_error.dart';
-import 'package:lumine/core/api/model/month_detail_model.dart';
-import 'package:lumine/core/api/model/month_info_model.dart';
-import 'package:lumine/core/api/model/news_list_model.dart';
-import 'package:lumine/core/api/model/reward_history_model.dart';
-import 'package:lumine/core/api/model/role_combat_model.dart';
-import 'package:lumine/core/api/model/spiral_abyss_model.dart';
-import 'package:lumine/core/api/model/unread_count_model.dart';
-import 'package:lumine/core/api/model/user_notifications_model.dart';
-import 'package:lumine/core/api/model/calculator_sync_avatar_list_model.dart';
+import 'package:lumine/core/api/model/month_detail_model.dart' show MonthDetail;
+import 'package:lumine/core/api/model/month_info_model.dart' show MonthInfo;
+import 'package:lumine/core/api/model/news_list_model.dart' show NewsList;
+import 'package:lumine/core/api/model/reward_history_model.dart' show RewardHistory;
+import 'package:lumine/core/api/model/role_combat_model.dart' show RoleCombat;
+import 'package:lumine/core/api/model/spiral_abyss_model.dart' show SpiralAbyss;
+import 'package:lumine/core/api/model/unread_count_model.dart' show UnreadCount;
+import 'package:lumine/core/api/model/user_notifications_model.dart' show UserNotifications;
+import 'package:lumine/core/api/model/calculator_sync_avatar_list_model.dart' show CalculatorSyncAvatarList;
 
 class HoYoLAB {
   final String ltoken;
@@ -1022,6 +1025,100 @@ class HoYoLAB {
       final data = json.decode(utf8.decode(response.body.runes.toList()));
       if (data['retcode'] == 0) {
         return RewardHistory.fromJson(data['data']);
+      } else {
+        throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
+      }
+    } else {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
+
+  Future<ActCalendar> getActCalendar() async {
+    final uri = Uri.parse(_sgPublicAPIUri)
+    .replace(
+      path: '/event/game_record/genshin/api/act_calendar',
+    );
+
+    final Map<String, String> headers = {
+      ...getHeaders(),
+      "x-rpc-page": "v5.1.6-ys_#/ys/act-calendar",
+    };
+
+    final Map<String, dynamic> body = {
+      "role_id": "$uid",
+      "server": region
+    };
+
+    final response = await http.post(
+      uri,
+      headers: headers,
+      body: json.encode(body)
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.body.runes.toList()));
+
+      if (data['retcode'] == 0) {
+        return ActCalendar.fromJson(data['data']);
+      } else {
+        throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
+      }
+    } else {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
+
+  Future<Calendar> getCalendar() async {
+    final uri = Uri.parse(_sgWikiAPIUri)
+    .replace(
+      path: '/hoyowiki/genshin/wapi/home/calendar',
+    );
+
+    final Map<String, String> headers = {
+      ...getHeaders(),
+      "x-rpc-wiki_app": "genshin",
+    };
+
+    final response = await http.get(
+      uri,
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.body.runes.toList()));
+      if (data['retcode'] == 0) {
+        return Calendar.fromJson(data['data']);
+      } else {
+        throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
+      }
+    } else {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
+
+  Future<Hover> getHoverData(String pageId) async {
+    final uri = Uri.parse(_sgWikiAPIUri)
+    .replace(
+      path: '/hoyowiki/genshin/wapi/home/hover',
+      queryParameters: {
+        "entry_page_id": pageId,
+      }
+    );
+
+    final Map<String, String> headers = {
+      ...getHeaders(),
+      "x-rpc-wiki_app": "genshin",
+    };
+
+    final response = await http.get(
+      uri,
+      headers: headers,
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.body.runes.toList()));
+      if (data['retcode'] == 0) {
+        return Hover.fromJson(data['data']['hover']);
       } else {
         throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');
       }

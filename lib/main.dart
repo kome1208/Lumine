@@ -6,8 +6,6 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 // import 'package:home_widget/home_widget.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/app.dart';
-import 'package:lumine/features/setup/login_view.dart';
-import 'package:lumine/features/main_view.dart';
 import 'package:lumine/core/provider/package_info.dart';
 import 'package:lumine/core/provider/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -41,15 +39,4 @@ Future<void> main() async {
       child: const App()
     )
   );
-}
-
-class MyHomePage extends HookConsumerWidget {
-  const MyHomePage({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      body: ref.read(sharedPreferencesProvider).getBool('is_initialized') ?? false ? const MainView() : const SetupView()
-    );
-  }
 }
