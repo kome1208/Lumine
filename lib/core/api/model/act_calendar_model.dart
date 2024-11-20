@@ -81,7 +81,8 @@ class ActItem with _$ActItem {
     @JsonKey(name: 'explore_detail') ExploreDetail? exploreDetail,
     @JsonKey(name: 'liben_detail') LibenDetail? libenDetail,
     @JsonKey(name: 'role_combat_detail') RoleCombatDetail? roleCombatDetail,
-    @JsonKey(name: 'tower_detail') TowerDetail? towerDetail
+    @JsonKey(name: 'tower_detail') TowerDetail? towerDetail,
+    @JsonKey(name: 'double_detail') DoubleDetail? doubleDetail,
   }) = _ActItem;
 
   factory ActItem.fromJson(Map<String, dynamic> json) => _$ActItemFromJson(json);
@@ -145,6 +146,16 @@ class RoleCombatDetail with _$RoleCombatDetail {
   }) = _RoleCombatDetail;
 
   factory RoleCombatDetail.fromJson(Map<String, dynamic> json) => _$RoleCombatDetailFromJson(json);
+}
+
+@freezed
+class DoubleDetail with _$DoubleDetail {
+  const factory DoubleDetail({
+    required int total,
+    required int left,
+  }) = _DoubleDetail;
+
+  factory DoubleDetail.fromJson(Map<String, dynamic> json) => _$DoubleDetailFromJson(json);
 }
 
 @JsonEnum(valueField: 'poolType')

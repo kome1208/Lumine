@@ -1247,6 +1247,8 @@ mixin _$ActItem {
   RoleCombatDetail? get roleCombatDetail => throw _privateConstructorUsedError;
   @JsonKey(name: 'tower_detail')
   TowerDetail? get towerDetail => throw _privateConstructorUsedError;
+  @JsonKey(name: 'double_detail')
+  DoubleDetail? get doubleDetail => throw _privateConstructorUsedError;
 
   /// Serializes this ActItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1277,12 +1279,14 @@ abstract class $ActItemCopyWith<$Res> {
       @JsonKey(name: 'explore_detail') ExploreDetail? exploreDetail,
       @JsonKey(name: 'liben_detail') LibenDetail? libenDetail,
       @JsonKey(name: 'role_combat_detail') RoleCombatDetail? roleCombatDetail,
-      @JsonKey(name: 'tower_detail') TowerDetail? towerDetail});
+      @JsonKey(name: 'tower_detail') TowerDetail? towerDetail,
+      @JsonKey(name: 'double_detail') DoubleDetail? doubleDetail});
 
   $ExploreDetailCopyWith<$Res>? get exploreDetail;
   $LibenDetailCopyWith<$Res>? get libenDetail;
   $RoleCombatDetailCopyWith<$Res>? get roleCombatDetail;
   $TowerDetailCopyWith<$Res>? get towerDetail;
+  $DoubleDetailCopyWith<$Res>? get doubleDetail;
 }
 
 /// @nodoc
@@ -1315,6 +1319,7 @@ class _$ActItemCopyWithImpl<$Res, $Val extends ActItem>
     Object? libenDetail = freezed,
     Object? roleCombatDetail = freezed,
     Object? towerDetail = freezed,
+    Object? doubleDetail = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -1377,6 +1382,10 @@ class _$ActItemCopyWithImpl<$Res, $Val extends ActItem>
           ? _value.towerDetail
           : towerDetail // ignore: cast_nullable_to_non_nullable
               as TowerDetail?,
+      doubleDetail: freezed == doubleDetail
+          ? _value.doubleDetail
+          : doubleDetail // ignore: cast_nullable_to_non_nullable
+              as DoubleDetail?,
     ) as $Val);
   }
 
@@ -1435,6 +1444,20 @@ class _$ActItemCopyWithImpl<$Res, $Val extends ActItem>
       return _then(_value.copyWith(towerDetail: value) as $Val);
     });
   }
+
+  /// Create a copy of ActItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $DoubleDetailCopyWith<$Res>? get doubleDetail {
+    if (_value.doubleDetail == null) {
+      return null;
+    }
+
+    return $DoubleDetailCopyWith<$Res>(_value.doubleDetail!, (value) {
+      return _then(_value.copyWith(doubleDetail: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -1459,7 +1482,8 @@ abstract class _$$ActItemImplCopyWith<$Res> implements $ActItemCopyWith<$Res> {
       @JsonKey(name: 'explore_detail') ExploreDetail? exploreDetail,
       @JsonKey(name: 'liben_detail') LibenDetail? libenDetail,
       @JsonKey(name: 'role_combat_detail') RoleCombatDetail? roleCombatDetail,
-      @JsonKey(name: 'tower_detail') TowerDetail? towerDetail});
+      @JsonKey(name: 'tower_detail') TowerDetail? towerDetail,
+      @JsonKey(name: 'double_detail') DoubleDetail? doubleDetail});
 
   @override
   $ExploreDetailCopyWith<$Res>? get exploreDetail;
@@ -1469,6 +1493,8 @@ abstract class _$$ActItemImplCopyWith<$Res> implements $ActItemCopyWith<$Res> {
   $RoleCombatDetailCopyWith<$Res>? get roleCombatDetail;
   @override
   $TowerDetailCopyWith<$Res>? get towerDetail;
+  @override
+  $DoubleDetailCopyWith<$Res>? get doubleDetail;
 }
 
 /// @nodoc
@@ -1499,6 +1525,7 @@ class __$$ActItemImplCopyWithImpl<$Res>
     Object? libenDetail = freezed,
     Object? roleCombatDetail = freezed,
     Object? towerDetail = freezed,
+    Object? doubleDetail = freezed,
   }) {
     return _then(_$ActItemImpl(
       id: null == id
@@ -1561,6 +1588,10 @@ class __$$ActItemImplCopyWithImpl<$Res>
           ? _value.towerDetail
           : towerDetail // ignore: cast_nullable_to_non_nullable
               as TowerDetail?,
+      doubleDetail: freezed == doubleDetail
+          ? _value.doubleDetail
+          : doubleDetail // ignore: cast_nullable_to_non_nullable
+              as DoubleDetail?,
     ));
   }
 }
@@ -1583,7 +1614,8 @@ class _$ActItemImpl implements _ActItem {
       @JsonKey(name: 'explore_detail') this.exploreDetail,
       @JsonKey(name: 'liben_detail') this.libenDetail,
       @JsonKey(name: 'role_combat_detail') this.roleCombatDetail,
-      @JsonKey(name: 'tower_detail') this.towerDetail})
+      @JsonKey(name: 'tower_detail') this.towerDetail,
+      @JsonKey(name: 'double_detail') this.doubleDetail})
       : _rewardList = rewardList;
 
   factory _$ActItemImpl.fromJson(Map<String, dynamic> json) =>
@@ -1634,10 +1666,13 @@ class _$ActItemImpl implements _ActItem {
   @override
   @JsonKey(name: 'tower_detail')
   final TowerDetail? towerDetail;
+  @override
+  @JsonKey(name: 'double_detail')
+  final DoubleDetail? doubleDetail;
 
   @override
   String toString() {
-    return 'ActItem(id: $id, name: $name, type: $type, startTimestamp: $startTimestamp, endTimestamp: $endTimestamp, desc: $desc, strategy: $strategy, countdownSeconds: $countdownSeconds, status: $status, rewardList: $rewardList, isFinished: $isFinished, exploreDetail: $exploreDetail, libenDetail: $libenDetail, roleCombatDetail: $roleCombatDetail, towerDetail: $towerDetail)';
+    return 'ActItem(id: $id, name: $name, type: $type, startTimestamp: $startTimestamp, endTimestamp: $endTimestamp, desc: $desc, strategy: $strategy, countdownSeconds: $countdownSeconds, status: $status, rewardList: $rewardList, isFinished: $isFinished, exploreDetail: $exploreDetail, libenDetail: $libenDetail, roleCombatDetail: $roleCombatDetail, towerDetail: $towerDetail, doubleDetail: $doubleDetail)';
   }
 
   @override
@@ -1669,7 +1704,9 @@ class _$ActItemImpl implements _ActItem {
             (identical(other.roleCombatDetail, roleCombatDetail) ||
                 other.roleCombatDetail == roleCombatDetail) &&
             (identical(other.towerDetail, towerDetail) ||
-                other.towerDetail == towerDetail));
+                other.towerDetail == towerDetail) &&
+            (identical(other.doubleDetail, doubleDetail) ||
+                other.doubleDetail == doubleDetail));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1690,7 +1727,8 @@ class _$ActItemImpl implements _ActItem {
       exploreDetail,
       libenDetail,
       roleCombatDetail,
-      towerDetail);
+      towerDetail,
+      doubleDetail);
 
   /// Create a copy of ActItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1725,8 +1763,9 @@ abstract class _ActItem implements ActItem {
       @JsonKey(name: 'liben_detail') final LibenDetail? libenDetail,
       @JsonKey(name: 'role_combat_detail')
       final RoleCombatDetail? roleCombatDetail,
-      @JsonKey(name: 'tower_detail')
-      final TowerDetail? towerDetail}) = _$ActItemImpl;
+      @JsonKey(name: 'tower_detail') final TowerDetail? towerDetail,
+      @JsonKey(name: 'double_detail')
+      final DoubleDetail? doubleDetail}) = _$ActItemImpl;
 
   factory _ActItem.fromJson(Map<String, dynamic> json) = _$ActItemImpl.fromJson;
 
@@ -1769,6 +1808,9 @@ abstract class _ActItem implements ActItem {
   @override
   @JsonKey(name: 'tower_detail')
   TowerDetail? get towerDetail;
+  @override
+  @JsonKey(name: 'double_detail')
+  DoubleDetail? get doubleDetail;
 
   /// Create a copy of ActItem
   /// with the given fields replaced by the non-null parameter values.
@@ -2900,5 +2942,171 @@ abstract class _RoleCombatDetail implements RoleCombatDetail {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RoleCombatDetailImplCopyWith<_$RoleCombatDetailImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+DoubleDetail _$DoubleDetailFromJson(Map<String, dynamic> json) {
+  return _DoubleDetail.fromJson(json);
+}
+
+/// @nodoc
+mixin _$DoubleDetail {
+  int get total => throw _privateConstructorUsedError;
+  int get left => throw _privateConstructorUsedError;
+
+  /// Serializes this DoubleDetail to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of DoubleDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $DoubleDetailCopyWith<DoubleDetail> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $DoubleDetailCopyWith<$Res> {
+  factory $DoubleDetailCopyWith(
+          DoubleDetail value, $Res Function(DoubleDetail) then) =
+      _$DoubleDetailCopyWithImpl<$Res, DoubleDetail>;
+  @useResult
+  $Res call({int total, int left});
+}
+
+/// @nodoc
+class _$DoubleDetailCopyWithImpl<$Res, $Val extends DoubleDetail>
+    implements $DoubleDetailCopyWith<$Res> {
+  _$DoubleDetailCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of DoubleDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? total = null,
+    Object? left = null,
+  }) {
+    return _then(_value.copyWith(
+      total: null == total
+          ? _value.total
+          : total // ignore: cast_nullable_to_non_nullable
+              as int,
+      left: null == left
+          ? _value.left
+          : left // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$DoubleDetailImplCopyWith<$Res>
+    implements $DoubleDetailCopyWith<$Res> {
+  factory _$$DoubleDetailImplCopyWith(
+          _$DoubleDetailImpl value, $Res Function(_$DoubleDetailImpl) then) =
+      __$$DoubleDetailImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int total, int left});
+}
+
+/// @nodoc
+class __$$DoubleDetailImplCopyWithImpl<$Res>
+    extends _$DoubleDetailCopyWithImpl<$Res, _$DoubleDetailImpl>
+    implements _$$DoubleDetailImplCopyWith<$Res> {
+  __$$DoubleDetailImplCopyWithImpl(
+      _$DoubleDetailImpl _value, $Res Function(_$DoubleDetailImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of DoubleDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? total = null,
+    Object? left = null,
+  }) {
+    return _then(_$DoubleDetailImpl(
+      total: null == total
+          ? _value.total
+          : total // ignore: cast_nullable_to_non_nullable
+              as int,
+      left: null == left
+          ? _value.left
+          : left // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$DoubleDetailImpl implements _DoubleDetail {
+  const _$DoubleDetailImpl({required this.total, required this.left});
+
+  factory _$DoubleDetailImpl.fromJson(Map<String, dynamic> json) =>
+      _$$DoubleDetailImplFromJson(json);
+
+  @override
+  final int total;
+  @override
+  final int left;
+
+  @override
+  String toString() {
+    return 'DoubleDetail(total: $total, left: $left)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$DoubleDetailImpl &&
+            (identical(other.total, total) || other.total == total) &&
+            (identical(other.left, left) || other.left == left));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, total, left);
+
+  /// Create a copy of DoubleDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$DoubleDetailImplCopyWith<_$DoubleDetailImpl> get copyWith =>
+      __$$DoubleDetailImplCopyWithImpl<_$DoubleDetailImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$DoubleDetailImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _DoubleDetail implements DoubleDetail {
+  const factory _DoubleDetail(
+      {required final int total, required final int left}) = _$DoubleDetailImpl;
+
+  factory _DoubleDetail.fromJson(Map<String, dynamic> json) =
+      _$DoubleDetailImpl.fromJson;
+
+  @override
+  int get total;
+  @override
+  int get left;
+
+  /// Create a copy of DoubleDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$DoubleDetailImplCopyWith<_$DoubleDetailImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

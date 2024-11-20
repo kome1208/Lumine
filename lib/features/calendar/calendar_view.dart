@@ -240,9 +240,13 @@ class _EventTabView extends HookConsumerWidget {
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
                       title: Text(act.name),
-                      subtitle: act.status == PoolStatus.onGoing ?
-                      Text('残り時間: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}') :
-                      null,
+                      subtitle: Text(
+                        switch (act.status) {
+                          PoolStatus.onGoing => '残り時間: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}',
+                          PoolStatus.beforeStart => '開始まで: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}',
+                          PoolStatus.ended => '終了'
+                        }
+                      ),
                       trailing: Wrap(
                         alignment: WrapAlignment.center,
                         runAlignment: WrapAlignment.end,
@@ -251,7 +255,7 @@ class _EventTabView extends HookConsumerWidget {
                           Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              switch (act.type) {
+                              if (act.status == PoolStatus.onGoing) switch (act.type) {
                                 ActType.explore => Text(
                                   '${act.exploreDetail!.explorePercent}%',
                                   style: const TextStyle(
@@ -266,6 +270,27 @@ class _EventTabView extends HookConsumerWidget {
                                     color: Colors.orange
                                   )
                                 ),
+                                ActType.double => RichText(
+                                  text: TextSpan(
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: Theme.of(context).textTheme.bodySmall?.fontFamily
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: '${act.doubleDetail!.left}',
+                                        style: const TextStyle(
+                                          color: Colors.orange
+                                        )
+                                      ),
+                                      TextSpan(
+                                        text: '/${act.doubleDetail!.total}'
+                                      ),
+                                    ],
+                                  )
+                                ),
                                 _ => const SizedBox()
                               },
                               Text(
@@ -273,6 +298,7 @@ class _EventTabView extends HookConsumerWidget {
                                   PoolStatus.onGoing => switch (act.type) {
                                     ActType.explore => '探索度',
                                     ActType.liBen => '交換回数',
+                                    ActType.double => '本日の残り',
                                     _ => '進行中'
                                   },
                                   PoolStatus.ended => '終了',
@@ -350,7 +376,8 @@ class _EventTabView extends HookConsumerWidget {
                                       ),
                                     ],
                                   )
-                                ) : const SizedBox(),
+                                ) :
+                                const SizedBox(),
                                 ActType.roleCombat => act.roleCombatDetail!.isUnlock ?
                                 Text(
                                   '第${act.roleCombatDetail!.maxRoundId}幕',

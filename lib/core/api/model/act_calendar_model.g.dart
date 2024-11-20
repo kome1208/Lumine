@@ -147,6 +147,10 @@ _$ActItemImpl _$$ActItemImplFromJson(Map<String, dynamic> json) =>
       towerDetail: json['tower_detail'] == null
           ? null
           : TowerDetail.fromJson(json['tower_detail'] as Map<String, dynamic>),
+      doubleDetail: json['double_detail'] == null
+          ? null
+          : DoubleDetail.fromJson(
+              json['double_detail'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$ActItemImplToJson(_$ActItemImpl instance) =>
@@ -166,6 +170,7 @@ Map<String, dynamic> _$$ActItemImplToJson(_$ActItemImpl instance) =>
       'liben_detail': instance.libenDetail,
       'role_combat_detail': instance.roleCombatDetail,
       'tower_detail': instance.towerDetail,
+      'double_detail': instance.doubleDetail,
     };
 
 const _$ActTypeEnumMap = {
@@ -257,4 +262,16 @@ Map<String, dynamic> _$$RoleCombatDetailImplToJson(
       'is_unlock': instance.isUnlock,
       'max_round_id': instance.maxRoundId,
       'has_data': instance.hasData,
+    };
+
+_$DoubleDetailImpl _$$DoubleDetailImplFromJson(Map<String, dynamic> json) =>
+    _$DoubleDetailImpl(
+      total: (json['total'] as num).toInt(),
+      left: (json['left'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$$DoubleDetailImplToJson(_$DoubleDetailImpl instance) =>
+    <String, dynamic>{
+      'total': instance.total,
+      'left': instance.left,
     };
