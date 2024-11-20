@@ -172,7 +172,8 @@ enum ActType {
   explore('ActTypeExplore'),
   liBen('ActTypeLiBen'),
   roleCombat('ActTypeRoleCombat'),
-  tower('ActTypeTower');
+  tower('ActTypeTower'),
+  double('ActTypeDouble');
 
   const ActType(this.actType);
   final String actType;

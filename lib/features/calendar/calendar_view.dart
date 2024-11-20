@@ -239,44 +239,50 @@ class _EventTabView extends HookConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: AspectRatio(
-                        aspectRatio: 1,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.onSecondary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Stack(
-                            alignment: Alignment.bottomCenter,
+                      title: Text(act.name),
+                      subtitle: act.status == PoolStatus.onGoing ?
+                      Text('残り時間: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}') :
+                      null,
+                      trailing: Wrap(
+                        alignment: WrapAlignment.center,
+                        runAlignment: WrapAlignment.end,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              CachedNetworkImage(imageUrl: act.rewardList.firstWhere((reward) => reward.homepageShow).icon),
+                              switch (act.type) {
+                                ActType.explore => Text(
+                                  '${act.exploreDetail!.explorePercent}%',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.orange
+                                  )
+                                ),
+                                ActType.liBen => Text(
+                                  '${act.libenDetail!.progress}/${act.libenDetail!.total}',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.orange
+                                  )
+                                ),
+                                _ => const SizedBox()
+                              },
                               Text(
-                                'x${act.rewardList.firstWhere((reward) => reward.homepageShow).num}',
-                                style: TextStyle(
-                                  backgroundColor: Colors.black.withOpacity(0.8)
+                                switch (act.status) {
+                                  PoolStatus.onGoing => switch (act.type) {
+                                    ActType.explore => '探索度',
+                                    ActType.liBen => '交換回数',
+                                    _ => '進行中'
+                                  },
+                                  PoolStatus.ended => '終了',
+                                  PoolStatus.beforeStart => '未開放',
+                                },
+                                style: const TextStyle(
+                                  fontSize: 14
                                 )
                               ),
                             ]
-                          )
-                        )
-                      ),
-                      title: Text(act.name),
-                      subtitle: Text('残り時間: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}'),
-                      trailing: Wrap(
-                        children: [
-                          Text(
-                            switch (act.status) {
-                              PoolStatus.onGoing => switch (act.type) {
-                                ActType.explore => '${act.exploreDetail!.explorePercent}%',
-                                ActType.liBen => '${act.libenDetail!.progress}/${act.libenDetail!.total}',
-                                _ => '進行中'
-                              },
-                              PoolStatus.ended => '終了',
-                              PoolStatus.beforeStart => '未開放',
-                            },
-                            style: const TextStyle(
-                              fontSize: 16
-                            )
                           ),
                           const Icon(Icons.chevron_right)
                         ]
@@ -312,44 +318,65 @@ class _EventTabView extends HookConsumerWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: AspectRatio(
-                        aspectRatio: 1,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.onSecondary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Stack(
-                            alignment: Alignment.bottomCenter,
-                            children: [
-                              CachedNetworkImage(imageUrl: act.rewardList.firstWhere((reward) => reward.homepageShow).icon),
-                              Text(
-                                'x${act.rewardList.firstWhere((reward) => reward.homepageShow).num}',
-                                style: TextStyle(
-                                  backgroundColor: Colors.black.withOpacity(0.8)
-                                )
-                              ),
-                            ]
-                          )
-                        )
-                      ),
                       title: Text(act.name),
                       subtitle: Text('残り時間: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}'),
                       trailing: Wrap(
+                        alignment: WrapAlignment.center,
+                        runAlignment: WrapAlignment.end,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Text(
-                            switch (act.status) {
-                              PoolStatus.onGoing => switch (act.type) {
-                                ActType.tower => act.towerDetail!.isUnlock ? '${act.towerDetail!.maxStar}/${act.towerDetail!.totalStar}' : '未開放',
-                                ActType.roleCombat => act.roleCombatDetail!.isUnlock ? '第${act.roleCombatDetail!.maxRoundId}幕' : '未開放',
-                                _ => '進行中'
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              switch (act.type) {
+                                ActType.tower => act.towerDetail!.isUnlock ?
+                                RichText(
+                                  text: TextSpan(
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: Theme.of(context).textTheme.bodySmall?.fontFamily
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: '${act.towerDetail!.maxStar}',
+                                        style: const TextStyle(
+                                          color: Colors.orange
+                                        )
+                                      ),
+                                      TextSpan(
+                                        text: '/${act.towerDetail!.totalStar}'
+                                      ),
+                                    ],
+                                  )
+                                ) : const SizedBox(),
+                                ActType.roleCombat => act.roleCombatDetail!.isUnlock ?
+                                Text(
+                                  '第${act.roleCombatDetail!.maxRoundId}幕',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.orange
+                                  )
+                                ) :
+                                const SizedBox(),
+                                _ => const SizedBox()
                               },
-                              PoolStatus.ended => '終了',
-                              PoolStatus.beforeStart => '未開放',
-                            },
-                            style: const TextStyle(
-                              fontSize: 16
-                            )
+                              Text(
+                                switch (act.status) {
+                                  PoolStatus.onGoing => switch (act.type) {
+                                    ActType.tower => act.towerDetail!.isUnlock ? '獲得スター' : '未開放',
+                                    ActType.roleCombat => act.roleCombatDetail!.isUnlock ? '最高記録' : '未開放',
+                                    _ => '進行中'
+                                  },
+                                  PoolStatus.ended => '終了',
+                                  PoolStatus.beforeStart => '未開放',
+                                },
+                                style: const TextStyle(
+                                  fontSize: 14
+                                )
+                              ),
+                            ]
                           ),
                           const Icon(Icons.chevron_right)
                         ]
@@ -478,119 +505,124 @@ class _MaterialTabView extends HookConsumerWidget {
                 controller: tabController,
                 physics: const NeverScrollableScrollPhysics(),
                 children: List.generate(7, (index) =>
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ...material
-                        .where((item) => item.dropDay.contains(index))
-                        .map((item) =>
-                          MyCard(
-                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 4),
-                                  child: Text(
-                                    item.obtainMethod,
-                                    style: const TextStyle(
-                                      fontSize: 16
+                  RefreshIndicator(
+                    onRefresh: () async {
+                      calendarNotifier.refresh();
+                    },
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...material
+                          .where((item) => item.dropDay.contains(index))
+                          .map((item) =>
+                            MyCard(
+                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 4),
+                                    child: Text(
+                                      item.obtainMethod,
+                                      style: const TextStyle(
+                                        fontSize: 16
+                                      ),
                                     ),
                                   ),
-                                ),
-                                GridView(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 5,
-                                    childAspectRatio: 1,
-                                    crossAxisSpacing: 8,
-                                    mainAxisSpacing: 8
+                                  GridView(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 5,
+                                      childAspectRatio: 1,
+                                      crossAxisSpacing: 8,
+                                      mainAxisSpacing: 8
+                                    ),
+                                    children: item.materialAbstracts.map((material) =>
+                                      Tooltip(
+                                        message: material.name,
+                                        child: Container(
+                                          clipBehavior: Clip.hardEdge,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: CachedNetworkImage(
+                                            imageUrl: material.iconUrl
+                                          ),
+                                        )
+                                      )
+                                    ).toList(),
                                   ),
-                                  children: item.materialAbstracts.map((material) =>
-                                    Tooltip(
-                                      message: material.name,
-                                      child: Container(
-                                        clipBehavior: Clip.hardEdge,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: CachedNetworkImage(
-                                          imageUrl: material.iconUrl
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
+                                    child: Text(
+                                      '該当${breakType == BreakType.talentLevelUp ? 'キャラクター' : '武器'}',
+                                      style: const TextStyle(
+                                        fontSize: 16
+                                      ),
+                                    ),
+                                  ),
+                                  GridView(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 5,
+                                      childAspectRatio: 1,
+                                      crossAxisSpacing: 8,
+                                      mainAxisSpacing: 8
+                                    ),
+                                    children: item.characterAbstracts.map((character) =>
+                                      GestureDetector(
+                                        onTap: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            useSafeArea: true,
+                                            enableDrag: true,
+                                            clipBehavior: Clip.hardEdge,
+                                            builder: (context) {
+                                              return SizedBox(
+                                                height: MediaQuery.of(context).size.height * 0.9,
+                                                child: _CharacterDetail(
+                                                  pageId: character.entryPageId,
+                                                  breakType: breakType
+                                                )
+                                              );
+                                            },
+                                          );
+                                        },
+                                        child: Container(
+                                          clipBehavior: Clip.hardEdge,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Stack(
+                                            children: [
+                                              Image.asset(
+                                                'assets/rank_bg/${switch (breakType) {
+                                                  BreakType.talentLevelUp => character.filterValues.characterRarity!.valueTypes[0].enumString,
+                                                  BreakType.weaponAscension => character.filterValues.weaponRarity!.valueTypes[0].enumString
+                                                }}.png'
+                                              ),
+                                              CachedNetworkImage(
+                                                imageUrl: character.iconUrl
+                                              )
+                                            ],
+                                          ),
                                         ),
                                       )
-                                    )
-                                  ).toList(),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
-                                  child: Text(
-                                    '該当${breakType == BreakType.talentLevelUp ? 'キャラクター' : '武器'}',
-                                    style: const TextStyle(
-                                      fontSize: 16
-                                    ),
+                                    ).toList(),
                                   ),
-                                ),
-                                GridView(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 5,
-                                    childAspectRatio: 1,
-                                    crossAxisSpacing: 8,
-                                    mainAxisSpacing: 8
-                                  ),
-                                  children: item.characterAbstracts.map((character) =>
-                                    GestureDetector(
-                                      onTap: () {
-                                        showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          useSafeArea: true,
-                                          enableDrag: true,
-                                          clipBehavior: Clip.hardEdge,
-                                          builder: (context) {
-                                            return SizedBox(
-                                              height: MediaQuery.of(context).size.height * 0.9,
-                                              child: _CharacterDetail(
-                                                pageId: character.entryPageId,
-                                                breakType: breakType
-                                              )
-                                            );
-                                          },
-                                        );
-                                      },
-                                      child: Container(
-                                        clipBehavior: Clip.hardEdge,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Stack(
-                                          children: [
-                                            Image.asset(
-                                              'assets/rank_bg/${switch (breakType) {
-                                                BreakType.talentLevelUp => character.filterValues.characterRarity!.valueTypes[0].enumString,
-                                                BreakType.weaponAscension => character.filterValues.weaponRarity!.valueTypes[0].enumString
-                                              }}.png'
-                                            ),
-                                            CachedNetworkImage(
-                                              imageUrl: character.iconUrl
-                                            )
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                  ).toList(),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
+                            )
                           )
-                        )
-                      ],
-                    )
+                        ],
+                      )
+                    ),
                   )
                 ),
               )

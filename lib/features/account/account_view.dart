@@ -7,9 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/provider/account_provider.dart';
+import 'package:lumine/core/provider/hoyolab_api.dart';
 import 'package:lumine/core/router/router.dart';
+import 'package:lumine/features/account/character_list/data/game_record_character_list_provider.dart';
 import 'package:lumine/features/account/data/game_record.dart';
 import 'package:lumine/features/account/character_detail/character_detail_view.dart';
+import 'package:waterfall_flow/waterfall_flow.dart';
 
 final Map<String, dynamic> elementIcons = {
   'Anemo': 'assets/element_icons/anemo.png',
@@ -87,17 +90,48 @@ class AccountView extends HookConsumerWidget {
                             ],
                           ),
                         ),
-                        ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                          title: const Text('すべてのキャラクター', style: TextStyle(fontSize: 14)),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () {
-                            const CharacterListRoute().push(context);
-                          },
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Row(
+                            children: [
+                              const Text('マイキャラクター'),
+                              IconButton(
+                                icon: const Icon(Icons.sort),
+                                tooltip: '並べ替え',
+                                onPressed: () async {
+                                  final shouldReload = await showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    useSafeArea: true,
+                                    enableDrag: true,
+                                    clipBehavior: Clip.hardEdge,
+                                    builder: (context) {
+                                      return SizedBox(
+                                        height: MediaQuery.of(context).size.height * 0.9,
+                                        child: const _CharacterSortView()
+                                      );
+                                    },
+                                  );
+
+                                  if (shouldReload == true) {
+                                    ref.read(gameRecordNotifierProvider.notifier).refresh();
+                                  }
+                                },
+                              ),
+                              const Spacer(),
+                              TextButton(
+                                child: const Text('全キャラクター'),
+                                onPressed: () {
+                                  const CharacterListRoute().push(context);
+                                }
+                              )
+                            ]
+                          )
                         ),
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: value.avatars.map((item) {
                               return GestureDetector(
                                 child: Container(
@@ -829,5 +863,182 @@ class _StickyTabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_StickyTabBarDelegate oldDelegate) {
     return tabBar != oldDelegate.tabBar;
+  }
+}
+
+class _CharacterSortView extends HookConsumerWidget {
+  const _CharacterSortView();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final addedCharacters = useState<List<int>>([]);
+    final api = ref.watch(hoYoLABAPINotifierProvider);
+    final characterList = ref.watch(gameRecordCharacterListNotifierProvider(1, null, null));
+    final characterListNotifier = ref.read(gameRecordCharacterListNotifierProvider(1, null, null).notifier);
+    final theme = Theme.of(context);
+
+    useEffect(() {
+      if (characterList is AsyncData) {
+        addedCharacters.value = characterList.value!.list
+        .where((character) => character.isChosen)
+        .map((character) => character.id)
+        .toList();
+      }
+      return null;
+    }, [characterList]);
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text('キャラクター管理'),
+        actions: [
+          TextButton(
+            child: const Text('クリア'),
+            onPressed: () {
+              addedCharacters.value = [];
+            },
+          ),
+          TextButton(
+            child: const Text('完了'),
+            onPressed: () {
+              api.setTopCharacters(addedCharacters.value);
+              Navigator.pop(context, true);
+            },
+          )
+        ],
+      ),
+      body: characterList.when(
+        data: (characterListData) {
+          return WaterfallFlow.builder(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            shrinkWrap: true,
+            itemCount: characterListData.list.length,
+            gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            itemBuilder: (context, index) {
+              final character = characterListData.list[index];
+              return GestureDetector(
+                onTap: () {
+                  if (!addedCharacters.value.contains(character.id) && addedCharacters.value.length < 12) {
+                    addedCharacters.value = List.from(addedCharacters.value)..add(character.id);
+                  } else {
+                    addedCharacters.value = List.from(addedCharacters.value)..remove(character.id);
+                  }
+                },
+                child: Opacity(
+                  opacity: addedCharacters.value.length >= 12 && !addedCharacters.value.contains(character.id) ? 0.5 : 1,
+                  child: GridTile(
+                    child: Column(
+                      children: [
+                        Container(
+                          clipBehavior: Clip.hardEdge,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: theme.colorScheme.secondaryContainer,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Stack(
+                                children: [
+                                  Image.asset('assets/rank_${character.rarity}.png'),
+                                  CachedNetworkImage(
+                                    imageUrl: character.icon
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(4),
+                                    child: Image.asset(
+                                      elementIcons[character.element],
+                                      width: 20,
+                                      height: 20,
+                                    )
+                                  ),
+                                  Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: Container(
+                                      margin: const EdgeInsets.all(4),
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(color: Colors.grey, width: 1),
+                                        color: addedCharacters.value.contains(character.id) ? Colors.black : Colors.black.withOpacity(0.5),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: addedCharacters.value.contains(character.id) ? Text('${addedCharacters.value.indexOf(character.id) + 1}') : null
+                                    )
+                                  )
+                                ],
+                              ),
+                              Text('Lv.${character.level}')
+                            ],
+                          ),
+                        ),
+                        Text(character.name, maxLines: 1, overflow: TextOverflow.ellipsis)
+                      ],
+                    ),
+                  )
+                ),
+              );
+            },
+          );
+        },
+        error: (error, stackTrace) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/images/icons/error_icon.png'),
+                Text(error.toString()),
+                TextButton(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('エラー詳細'),
+                          content: SingleChildScrollView(child: Text(stackTrace.toString())),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: stackTrace.toString()));
+                                Navigator.pop(context);
+                              },
+                              child: const Text('コピー')
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('閉じる')
+                            )
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: const Text('エラー詳細')
+                ),
+                TextButton(
+                  onPressed: () {
+                    characterListNotifier.refresh();
+                  },
+                  child: const Text('再試行')
+                )
+              ],
+            ),
+          );
+        },
+        loading: () {
+          return const Center(child: CircularProgressIndicator());
+        }
+      ),
+    );
   }
 }

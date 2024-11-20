@@ -174,6 +174,7 @@ const _$ActTypeEnumMap = {
   ActType.liBen: 'ActTypeLiBen',
   ActType.roleCombat: 'ActTypeRoleCombat',
   ActType.tower: 'ActTypeTower',
+  ActType.double: 'ActTypeDouble',
 };
 
 _$ActRewardImpl _$$ActRewardImplFromJson(Map<String, dynamic> json) =>

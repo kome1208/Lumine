@@ -5,17 +5,28 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'game_record_character_list_provider.g.dart';
 
 @Riverpod()
-Future<GameRecordCharacterList> gameRecordCharacterList(
-  GameRecordCharacterListRef ref,
-  int sortType,
-  List<String>? elements,
-  List<int>? weaponTypes
-) async {
-  final api = ref.watch(hoYoLABAPINotifierProvider);
+class GameRecordCharacterListNotifier extends _$GameRecordCharacterListNotifier {
+  @override
+  Future<GameRecordCharacterList> build(
+    int sortType,
+    List<String>? elements,
+    List<int>? weaponTypes
+  ) async {
+    return fetchData();
+  }
 
-  return api.getCharacterList(
-    sortType: sortType,
-    elements: elements,
-    weaponType: weaponTypes
-  );
+  Future<GameRecordCharacterList> fetchData() async {
+    final api = ref.watch(hoYoLABAPINotifierProvider);
+
+    return api.getCharacterList(
+      sortType: sortType,
+      elements: elements,
+      weaponType: weaponTypes
+    );
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async => await fetchData());
+  }
 }

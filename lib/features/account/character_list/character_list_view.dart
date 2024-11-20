@@ -33,11 +33,17 @@ class CharacterListView extends HookConsumerWidget {
     final characterListElementFilter = ref.watch(characterListElementFilterProvider);
     final characterListWeaponFilter = ref.watch(characterListWeaponFilterProvider);
 
-    final characterList = ref.watch(gameRecordCharacterListProvider(
+    final characterList = ref.watch(gameRecordCharacterListNotifierProvider(
       characterSortType,
       characterListElementFilter,
       characterListWeaponFilter,
     ));
+
+    final characterListNotifier = ref.read(gameRecordCharacterListNotifierProvider(
+      characterSortType,
+      characterListElementFilter,
+      characterListWeaponFilter,
+    ).notifier);
 
     Future<void> showCharacterSheet(int id) {
       return showModalBottomSheet(
@@ -198,7 +204,7 @@ class CharacterListView extends HookConsumerWidget {
                 ),
                 TextButton(
                   onPressed: () {
-                    ref.invalidate(gameRecordCharacterListProvider);
+                    characterListNotifier.refresh();
                   },
                   child: const Text('再試行')
                 )

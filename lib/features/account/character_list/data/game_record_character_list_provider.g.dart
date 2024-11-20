@@ -6,8 +6,8 @@ part of 'game_record_character_list_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$gameRecordCharacterListHash() =>
-    r'791cb6adc53b1fdcdf2dc6cc15ba2b47a28bb26e';
+String _$gameRecordCharacterListNotifierHash() =>
+    r'7a2bcaf9e6995b50984a17d00b48c15b59797d5a';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -30,23 +30,37 @@ class _SystemHash {
   }
 }
 
-/// See also [gameRecordCharacterList].
-@ProviderFor(gameRecordCharacterList)
-const gameRecordCharacterListProvider = GameRecordCharacterListFamily();
+abstract class _$GameRecordCharacterListNotifier
+    extends BuildlessAutoDisposeAsyncNotifier<GameRecordCharacterList> {
+  late final int sortType;
+  late final List<String>? elements;
+  late final List<int>? weaponTypes;
 
-/// See also [gameRecordCharacterList].
-class GameRecordCharacterListFamily
+  FutureOr<GameRecordCharacterList> build(
+    int sortType,
+    List<String>? elements,
+    List<int>? weaponTypes,
+  );
+}
+
+/// See also [GameRecordCharacterListNotifier].
+@ProviderFor(GameRecordCharacterListNotifier)
+const gameRecordCharacterListNotifierProvider =
+    GameRecordCharacterListNotifierFamily();
+
+/// See also [GameRecordCharacterListNotifier].
+class GameRecordCharacterListNotifierFamily
     extends Family<AsyncValue<GameRecordCharacterList>> {
-  /// See also [gameRecordCharacterList].
-  const GameRecordCharacterListFamily();
+  /// See also [GameRecordCharacterListNotifier].
+  const GameRecordCharacterListNotifierFamily();
 
-  /// See also [gameRecordCharacterList].
-  GameRecordCharacterListProvider call(
+  /// See also [GameRecordCharacterListNotifier].
+  GameRecordCharacterListNotifierProvider call(
     int sortType,
     List<String>? elements,
     List<int>? weaponTypes,
   ) {
-    return GameRecordCharacterListProvider(
+    return GameRecordCharacterListNotifierProvider(
       sortType,
       elements,
       weaponTypes,
@@ -54,8 +68,8 @@ class GameRecordCharacterListFamily
   }
 
   @override
-  GameRecordCharacterListProvider getProviderOverride(
-    covariant GameRecordCharacterListProvider provider,
+  GameRecordCharacterListNotifierProvider getProviderOverride(
+    covariant GameRecordCharacterListNotifierProvider provider,
   ) {
     return call(
       provider.sortType,
@@ -76,39 +90,38 @@ class GameRecordCharacterListFamily
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'gameRecordCharacterListProvider';
+  String? get name => r'gameRecordCharacterListNotifierProvider';
 }
 
-/// See also [gameRecordCharacterList].
-class GameRecordCharacterListProvider
-    extends AutoDisposeFutureProvider<GameRecordCharacterList> {
-  /// See also [gameRecordCharacterList].
-  GameRecordCharacterListProvider(
+/// See also [GameRecordCharacterListNotifier].
+class GameRecordCharacterListNotifierProvider
+    extends AutoDisposeAsyncNotifierProviderImpl<
+        GameRecordCharacterListNotifier, GameRecordCharacterList> {
+  /// See also [GameRecordCharacterListNotifier].
+  GameRecordCharacterListNotifierProvider(
     int sortType,
     List<String>? elements,
     List<int>? weaponTypes,
   ) : this._internal(
-          (ref) => gameRecordCharacterList(
-            ref as GameRecordCharacterListRef,
-            sortType,
-            elements,
-            weaponTypes,
-          ),
-          from: gameRecordCharacterListProvider,
-          name: r'gameRecordCharacterListProvider',
+          () => GameRecordCharacterListNotifier()
+            ..sortType = sortType
+            ..elements = elements
+            ..weaponTypes = weaponTypes,
+          from: gameRecordCharacterListNotifierProvider,
+          name: r'gameRecordCharacterListNotifierProvider',
           debugGetCreateSourceHash:
               const bool.fromEnvironment('dart.vm.product')
                   ? null
-                  : _$gameRecordCharacterListHash,
-          dependencies: GameRecordCharacterListFamily._dependencies,
+                  : _$gameRecordCharacterListNotifierHash,
+          dependencies: GameRecordCharacterListNotifierFamily._dependencies,
           allTransitiveDependencies:
-              GameRecordCharacterListFamily._allTransitiveDependencies,
+              GameRecordCharacterListNotifierFamily._allTransitiveDependencies,
           sortType: sortType,
           elements: elements,
           weaponTypes: weaponTypes,
         );
 
-  GameRecordCharacterListProvider._internal(
+  GameRecordCharacterListNotifierProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -125,15 +138,25 @@ class GameRecordCharacterListProvider
   final List<int>? weaponTypes;
 
   @override
-  Override overrideWith(
-    FutureOr<GameRecordCharacterList> Function(
-            GameRecordCharacterListRef provider)
-        create,
+  FutureOr<GameRecordCharacterList> runNotifierBuild(
+    covariant GameRecordCharacterListNotifier notifier,
   ) {
+    return notifier.build(
+      sortType,
+      elements,
+      weaponTypes,
+    );
+  }
+
+  @override
+  Override overrideWith(GameRecordCharacterListNotifier Function() create) {
     return ProviderOverride(
       origin: this,
-      override: GameRecordCharacterListProvider._internal(
-        (ref) => create(ref as GameRecordCharacterListRef),
+      override: GameRecordCharacterListNotifierProvider._internal(
+        () => create()
+          ..sortType = sortType
+          ..elements = elements
+          ..weaponTypes = weaponTypes,
         from: from,
         name: null,
         dependencies: null,
@@ -147,13 +170,14 @@ class GameRecordCharacterListProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<GameRecordCharacterList> createElement() {
-    return _GameRecordCharacterListProviderElement(this);
+  AutoDisposeAsyncNotifierProviderElement<GameRecordCharacterListNotifier,
+      GameRecordCharacterList> createElement() {
+    return _GameRecordCharacterListNotifierProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is GameRecordCharacterListProvider &&
+    return other is GameRecordCharacterListNotifierProvider &&
         other.sortType == sortType &&
         other.elements == elements &&
         other.weaponTypes == weaponTypes;
@@ -172,8 +196,8 @@ class GameRecordCharacterListProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin GameRecordCharacterListRef
-    on AutoDisposeFutureProviderRef<GameRecordCharacterList> {
+mixin GameRecordCharacterListNotifierRef
+    on AutoDisposeAsyncNotifierProviderRef<GameRecordCharacterList> {
   /// The parameter `sortType` of this provider.
   int get sortType;
 
@@ -184,19 +208,21 @@ mixin GameRecordCharacterListRef
   List<int>? get weaponTypes;
 }
 
-class _GameRecordCharacterListProviderElement
-    extends AutoDisposeFutureProviderElement<GameRecordCharacterList>
-    with GameRecordCharacterListRef {
-  _GameRecordCharacterListProviderElement(super.provider);
+class _GameRecordCharacterListNotifierProviderElement
+    extends AutoDisposeAsyncNotifierProviderElement<
+        GameRecordCharacterListNotifier,
+        GameRecordCharacterList> with GameRecordCharacterListNotifierRef {
+  _GameRecordCharacterListNotifierProviderElement(super.provider);
 
   @override
-  int get sortType => (origin as GameRecordCharacterListProvider).sortType;
+  int get sortType =>
+      (origin as GameRecordCharacterListNotifierProvider).sortType;
   @override
   List<String>? get elements =>
-      (origin as GameRecordCharacterListProvider).elements;
+      (origin as GameRecordCharacterListNotifierProvider).elements;
   @override
   List<int>? get weaponTypes =>
-      (origin as GameRecordCharacterListProvider).weaponTypes;
+      (origin as GameRecordCharacterListNotifierProvider).weaponTypes;
 }
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

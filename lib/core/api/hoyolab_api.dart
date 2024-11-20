@@ -1126,4 +1126,27 @@ class HoYoLAB {
       throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
     }
   }
+
+  Future<void> setTopCharacters(List<int> avatarIds) async {
+    final uri = Uri.parse(_sgPublicAPIUri)
+    .replace(
+      path: '/event/game_record/genshin/api/character/top',
+    );
+
+    final Map<String, dynamic> body = {
+      "avatar_ids": avatarIds,
+      "role_id": "$uid",
+      "server": region
+    };
+
+    final response = await http.post(
+      uri,
+      headers: getHeaders(),
+      body: json.encode(body)
+    );
+
+    if (response.statusCode != 200) {
+      throw HoYoLABAPIError(response.statusCode, 'HTTPエラー');
+    }
+  }
 }
