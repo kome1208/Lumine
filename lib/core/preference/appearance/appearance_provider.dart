@@ -8,26 +8,22 @@ part 'appearance_provider.g.dart';
 class AppearanceSettings {
   final String fontFamily;
   final Color colorScheme;
-  final bool replaceArchonQuest;
   final bool useDynamicColor;
 
   AppearanceSettings({
     required this.fontFamily,
     required this.colorScheme,
-    required this.replaceArchonQuest,
     required this.useDynamicColor,
   });
 
   AppearanceSettings copyWith({
     String? fontFamily,
     Color? colorScheme,
-    bool? replaceArchonQuest,
     bool? useDynamicColor,
   }) {
     return AppearanceSettings(
       fontFamily: fontFamily ?? this.fontFamily,
       colorScheme: colorScheme ?? this.colorScheme,
-      replaceArchonQuest: replaceArchonQuest ?? this.replaceArchonQuest,
       useDynamicColor: useDynamicColor ?? this.useDynamicColor,
     );
   }
@@ -54,13 +50,6 @@ class AppearanceNotifier extends _$AppearanceNotifier {
     ref.read(sharedPreferencesProvider).setString(_colorSchemeKey, value.toHexString());
   }
 
-  void setReplaceArchonQuest(bool value) {
-    state = state.copyWith(
-      replaceArchonQuest: value
-    );
-    ref.read(sharedPreferencesProvider).setBool(_replaceArchonQuestKey, value);
-  }
-
   void setUseDynamicColor(bool value) {
     state = state.copyWith(
       useDynamicColor: value
@@ -82,7 +71,6 @@ class AppearanceNotifier extends _$AppearanceNotifier {
     final settings = AppearanceSettings(
       fontFamily: prefs.getString(_fontFamilyKey) ?? 'Default',
       colorScheme: _stringToColor(prefs.getString(_colorSchemeKey) ?? Colors.lightBlue.toHexString()),
-      replaceArchonQuest: prefs.getBool(_replaceArchonQuestKey) ?? false,
       useDynamicColor: prefs.getBool(_useDynamicColorKey) ?? true,
     );
 
@@ -91,6 +79,5 @@ class AppearanceNotifier extends _$AppearanceNotifier {
 
   static const _fontFamilyKey = 'font_family';
   static const _colorSchemeKey = 'color_scheme';
-  static const _replaceArchonQuestKey = 'replace_archon_quest';
   static const _useDynamicColorKey = 'use_dynamic_color';
 }

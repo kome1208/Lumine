@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/api/model/act_calendar_model.dart';
@@ -11,10 +10,9 @@ import 'package:lumine/features/calendar/data/act_calendar_provider.dart';
 import 'package:lumine/features/calendar/data/calendar_provider.dart';
 import 'package:lumine/features/calendar/data/hover_data_provider.dart';
 import 'package:lumine/utils/date_formatter.dart';
-import 'package:lumine/widgets/my_card.dart';
+import 'package:lumine/widgets/error_view.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:url_launcher/url_launcher_string.dart';
-import 'package:waterfall_flow/waterfall_flow.dart';
 
 final Map gradientColors = {
   '1': const [
@@ -101,6 +99,7 @@ class _EventTabView extends HookConsumerWidget {
     useAutomaticKeepAlive(wantKeepAlive: true);
     final actCalendar = ref.watch(actCalendarNotifierProvider);
     final actCalendarNotifier = ref.read(actCalendarNotifierProvider.notifier);
+    final cardColor = ElevationOverlay.applySurfaceTint(Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.primary, 3);
 
     return actCalendar.when(
       data: (actCalendarData) {
@@ -118,26 +117,36 @@ class _EventTabView extends HookConsumerWidget {
                     left: 16,
                     right: 16,
                   ),
-                  child: Text('イベント祈願')
+                  child: Text(
+                    'イベント祈願',
+                    style: TextStyle(
+                      fontSize: 18
+                    )
+                  )
                 ),
                 ...actCalendarData.avatarCardPoolList.map((avatarCard) =>
-                  MyCard(
+                  Card.filled(
+                    color: cardColor,
                     margin: const EdgeInsets.symmetric(
                       vertical: 8,
                       horizontal: 16
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ListTile(
-                          contentPadding: EdgeInsets.zero,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                           title: Text(avatarCard.poolName),
                           subtitle: Text('残り時間: ${DateFormatter.formatTime(avatarCard.countdownSeconds * 1000, showSeconds: false)}'),
                           trailing: RawChip(label: Text(avatarCard.versionName)),
                         ),
+                        const Divider(
+                          indent: 16,
+                          endIndent: 16,
+                          height: 1,
+                        ),
                         GridView.builder(
-                          padding: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -178,23 +187,28 @@ class _EventTabView extends HookConsumerWidget {
                   )
                 ),
                 ...actCalendarData.weaponCardPoolList.map((weaponCard) =>
-                  MyCard(
+                  Card.filled(
+                    color: cardColor,
                     margin: const EdgeInsets.symmetric(
                       vertical: 8,
                       horizontal: 16
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ListTile(
-                          contentPadding: EdgeInsets.zero,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                           title: Text(weaponCard.poolName),
                           subtitle: Text('残り時間: ${DateFormatter.formatTime(weaponCard.countdownSeconds * 1000, showSeconds: false)}'),
                           trailing: RawChip(label: Text(weaponCard.versionName)),
                         ),
+                        const Divider(
+                          indent: 16,
+                          endIndent: 16,
+                          height: 1
+                        ),
                         GridView.builder(
-                          padding: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -228,49 +242,103 @@ class _EventTabView extends HookConsumerWidget {
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text('イベント一覧')
+                  child: Text(
+                    'イベント一覧',
+                    style: TextStyle(
+                      fontSize: 18
+                    )
+                  )
                 ),
                 ...actCalendarData.actList.map((act) =>
-                  MyCard(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 16
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(act.name),
-                      subtitle: Text(
-                        switch (act.status) {
-                          PoolStatus.onGoing => '残り時間: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}',
-                          PoolStatus.beforeStart => '開始まで: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}',
-                          PoolStatus.ended => '終了'
-                        }
-                      ),
-                      trailing: Wrap(
-                        alignment: WrapAlignment.center,
-                        runAlignment: WrapAlignment.end,
-                        crossAxisAlignment: WrapCrossAlignment.center,
+                  Card.filled(
+                    color: cardColor,
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    clipBehavior: Clip.hardEdge,
+                    child: InkWell(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          useSafeArea: true,
+                          enableDrag: true,
+                          clipBehavior: Clip.hardEdge,
+                          builder: (context) {
+                            return SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.9,
+                              child: _EventDetail(actItem: act)
+                            );
+                          },
+                        );
+                      },
+                      child: Column(
                         children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (act.status == PoolStatus.onGoing) switch (act.type) {
-                                ActType.explore => Text(
+                          ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                            title: Text(act.name),
+                            subtitle: act.status == PoolStatus.onGoing ? Text('残り時間: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}') : null,
+                            trailing: Wrap(
+                              alignment: WrapAlignment.end,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              runAlignment: WrapAlignment.center,
+                              children: [
+                                switch (act.status) {
+                                  PoolStatus.onGoing => Text(
+                                    act.isFinished ? '完了' : '進行中',
+                                    style: TextStyle(
+                                      color: act.isFinished ? Colors.green : Colors.yellow,
+                                      fontSize: 14
+                                    )
+                                  ),
+                                  PoolStatus.beforeStart => const Text(
+                                    '未開放',
+                                    style: TextStyle(
+                                      fontSize: 14
+                                    )
+                                  ),
+                                  PoolStatus.ended => const Text(
+                                    '終了',
+                                    style: TextStyle(
+                                      fontSize: 14
+                                    )
+                                  )
+                                },
+                                const Icon(Icons.chevron_right)
+                              ]
+                            ),
+                          ),
+                          if (act.type != ActType.other && act.status == PoolStatus.onGoing) ...[
+                            const Divider(
+                              indent: 16,
+                              endIndent: 16,
+                              height: 1
+                            ),
+                            switch (act.type) {
+                              ActType.explore => ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                title: const Text('探索度'),
+                                trailing: Text(
                                   '${act.exploreDetail!.explorePercent}%',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.orange
                                   )
-                                ),
-                                ActType.liBen => Text(
+                                )
+                              ),
+                              ActType.liBen => ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                title: const Text('交換回数'),
+                                trailing: Text(
                                   '${act.libenDetail!.progress}/${act.libenDetail!.total}',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.orange
                                   )
-                                ),
-                                ActType.double => RichText(
+                                )
+                              ),
+                              ActType.double => ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                title: const Text('本日の残り'),
+                                trailing: RichText(
                                   text: TextSpan(
                                     style: TextStyle(
                                       fontSize: 14,
@@ -291,28 +359,30 @@ class _EventTabView extends HookConsumerWidget {
                                     ],
                                   )
                                 ),
-                                _ => const SizedBox()
-                              },
-                              Text(
-                                switch (act.status) {
-                                  PoolStatus.onGoing => switch (act.type) {
-                                    ActType.explore => '探索度',
-                                    ActType.liBen => '交換回数',
-                                    ActType.double => '本日の残り',
-                                    _ => '進行中'
-                                  },
-                                  PoolStatus.ended => '終了',
-                                  PoolStatus.beforeStart => '未開放',
-                                },
-                                style: const TextStyle(
-                                  fontSize: 14
-                                )
                               ),
-                            ]
-                          ),
-                          const Icon(Icons.chevron_right)
+                              _ => const SizedBox()
+                            }
+                          ],
                         ]
-                      ),
+                      )
+                    ),
+                  )
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    '常設イベント一覧',
+                    style: TextStyle(
+                      fontSize: 18
+                    )
+                  )
+                ),
+                ...actCalendarData.fixedActList.map((act) =>
+                  Card.filled(
+                    color: cardColor,
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    clipBehavior: Clip.hardEdge,
+                    child: InkWell(
                       onTap: () {
                         showModalBottomSheet(
                           context: context,
@@ -327,36 +397,55 @@ class _EventTabView extends HookConsumerWidget {
                             );
                           },
                         );
-                      }
-                    )
-                  )
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: Text('常設イベント一覧')
-                ),
-                ...actCalendarData.fixedActList.map((act) =>
-                  MyCard(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 16
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(act.name),
-                      subtitle: Text('残り時間: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}'),
-                      trailing: Wrap(
-                        alignment: WrapAlignment.center,
-                        runAlignment: WrapAlignment.end,
-                        crossAxisAlignment: WrapCrossAlignment.center,
+                      },
+                      child: Column(
                         children: [
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              switch (act.type) {
-                                ActType.tower => act.towerDetail!.isUnlock ?
-                                RichText(
+                          ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                            title: Text(act.name),
+                            subtitle: act.status == PoolStatus.onGoing ? Text('残り時間: ${DateFormatter.formatTime(act.countdownSeconds * 1000, showSeconds: false)}') : null,
+                            trailing: Wrap(
+                              alignment: WrapAlignment.end,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              runAlignment: WrapAlignment.center,
+                              children: [
+                                switch (act.status) {
+                                  PoolStatus.onGoing => Text(
+                                    act.isFinished ? '完了' : '進行中',
+                                    style: TextStyle(
+                                      color: act.isFinished ? Colors.green : Colors.yellow,
+                                      fontSize: 14
+                                    )
+                                  ),
+                                  PoolStatus.beforeStart => const Text(
+                                    '未開放',
+                                    style: TextStyle(
+                                      fontSize: 14
+                                    )
+                                  ),
+                                  PoolStatus.ended => const Text(
+                                    '終了',
+                                    style: TextStyle(
+                                      fontSize: 14
+                                    )
+                                  )
+                                },
+                                const Icon(Icons.chevron_right)
+                              ]
+                            ),
+                          ),
+                          if (act.type != ActType.other && act.status == PoolStatus.onGoing) ...[
+                            const Divider(
+                              indent: 16,
+                              endIndent: 16,
+                              height: 1
+                            ),
+                            switch (act.type) {
+                              ActType.tower => act.towerDetail!.isUnlock ?
+                              ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                title: const Text('獲得したスター'),
+                                trailing: RichText(
                                   text: TextSpan(
                                     style: TextStyle(
                                       fontSize: 14,
@@ -376,56 +465,30 @@ class _EventTabView extends HookConsumerWidget {
                                       ),
                                     ],
                                   )
-                                ) :
-                                const SizedBox(),
-                                ActType.roleCombat => act.roleCombatDetail!.isUnlock ?
-                                Text(
+                                ),
+                              ) :
+                              const SizedBox(),
+                              ActType.roleCombat => act.roleCombatDetail!.isUnlock ?
+                              ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                title: const Text('獲得したスター'),
+                                trailing: Text(
                                   '第${act.roleCombatDetail!.maxRoundId}幕',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.orange
                                   )
-                                ) :
-                                const SizedBox(),
-                                _ => const SizedBox()
-                              },
-                              Text(
-                                switch (act.status) {
-                                  PoolStatus.onGoing => switch (act.type) {
-                                    ActType.tower => act.towerDetail!.isUnlock ? '獲得スター' : '未開放',
-                                    ActType.roleCombat => act.roleCombatDetail!.isUnlock ? '最高記録' : '未開放',
-                                    _ => '進行中'
-                                  },
-                                  PoolStatus.ended => '終了',
-                                  PoolStatus.beforeStart => '未開放',
-                                },
-                                style: const TextStyle(
-                                  fontSize: 14
-                                )
-                              ),
-                            ]
-                          ),
-                          const Icon(Icons.chevron_right)
+                                ),
+                              ) :
+                              const SizedBox(),
+                              _ => const SizedBox()
+                            },
+                          ],
                         ]
-                      ),
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          useSafeArea: true,
-                          enableDrag: true,
-                          clipBehavior: Clip.hardEdge,
-                          builder: (context) {
-                            return SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.9,
-                              child: _EventDetail(actItem: act)
-                            );
-                          },
-                        );
-                      }
-                    )
+                      )
+                    ),
                   )
-                ),
+                )
               ],
             ),
           )
@@ -435,34 +498,9 @@ class _EventTabView extends HookConsumerWidget {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/images/icons/error_icon.png'),
-            Text(error.toString()),
-            TextButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text('エラー詳細'),
-                      content: SingleChildScrollView(child: Text(stackTrace.toString())),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                            Navigator.pop(context);
-                          },
-                          child: const Text('コピー')
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('閉じる')
-                        )
-                      ],
-                    );
-                  },
-                );
-              },
-              child: const Text('エラー詳細')
+            ErrorView(
+              error: error,
+              stackTrace: stackTrace,
             ),
             TextButton(
               onPressed: () {
@@ -509,6 +547,8 @@ class _MaterialTabView extends HookConsumerWidget {
     final calendar = ref.watch(calendarNotifierProvider);
     final calendarNotifier = ref.read(calendarNotifierProvider.notifier);
 
+    final cardColor = ElevationOverlay.applySurfaceTint(Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.primary, 3);
+
     return calendar.when(
       data: (calendarData) {
         final material = calendarData.calendar.where((item) => item.breakType == breakType).toList();
@@ -543,105 +583,100 @@ class _MaterialTabView extends HookConsumerWidget {
                           ...material
                           .where((item) => item.dropDay.contains(index))
                           .map((item) =>
-                            MyCard(
+                            Card.filled(
+                              color: cardColor,
                               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              padding: const EdgeInsets.all(16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(bottom: 4),
-                                    child: Text(
-                                      item.obtainMethod,
-                                      style: const TextStyle(
-                                        fontSize: 16
+                                  ListTile(
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                                    title: Text(item.obtainMethod),
+                                    subtitle: GridView(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 5,
+                                        childAspectRatio: 1,
+                                        crossAxisSpacing: 8,
+                                        mainAxisSpacing: 8
                                       ),
+                                      children: item.materialAbstracts.map((material) =>
+                                        Tooltip(
+                                          message: material.name,
+                                          child: Container(
+                                            clipBehavior: Clip.hardEdge,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: CachedNetworkImage(
+                                              imageUrl: material.iconUrl
+                                            ),
+                                          )
+                                        )
+                                      ).toList(),
                                     ),
                                   ),
-                                  GridView(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 5,
-                                      childAspectRatio: 1,
-                                      crossAxisSpacing: 8,
-                                      mainAxisSpacing: 8
-                                    ),
-                                    children: item.materialAbstracts.map((material) =>
-                                      Tooltip(
-                                        message: material.name,
-                                        child: Container(
-                                          clipBehavior: Clip.hardEdge,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: CachedNetworkImage(
-                                            imageUrl: material.iconUrl
+                                  Divider(
+                                    indent: 16,
+                                    endIndent: 16,
+                                    height: 1
+                                  ),
+                                  ListTile(
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                                    title: Text('該当${breakType == BreakType.talentLevelUp ? 'キャラクター' : '武器'}'),
+                                    subtitle: GridView(
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: 5,
+                                        childAspectRatio: 1,
+                                        crossAxisSpacing: 8,
+                                        mainAxisSpacing: 8
+                                      ),
+                                      children: item.characterAbstracts.map((character) =>
+                                        GestureDetector(
+                                          onTap: () {
+                                            showModalBottomSheet(
+                                              context: context,
+                                              isScrollControlled: true,
+                                              useSafeArea: true,
+                                              enableDrag: true,
+                                              clipBehavior: Clip.hardEdge,
+                                              builder: (context) {
+                                                return SizedBox(
+                                                  height: MediaQuery.of(context).size.height * 0.9,
+                                                  child: _CharacterDetail(
+                                                    pageId: character.entryPageId,
+                                                    breakType: breakType
+                                                  )
+                                                );
+                                              },
+                                            );
+                                          },
+                                          child: Container(
+                                            clipBehavior: Clip.hardEdge,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Stack(
+                                              children: [
+                                                Image.asset(
+                                                  'assets/rank_bg/${switch (breakType) {
+                                                    BreakType.talentLevelUp => character.filterValues.characterRarity!.valueTypes[0].enumString,
+                                                    BreakType.weaponAscension => character.filterValues.weaponRarity!.valueTypes[0].enumString
+                                                  }}.png'
+                                                ),
+                                                CachedNetworkImage(
+                                                  imageUrl: character.iconUrl
+                                                )
+                                              ],
+                                            ),
                                           ),
                                         )
-                                      )
-                                    ).toList(),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 4),
-                                    child: Text(
-                                      '該当${breakType == BreakType.talentLevelUp ? 'キャラクター' : '武器'}',
-                                      style: const TextStyle(
-                                        fontSize: 16
-                                      ),
-                                    ),
-                                  ),
-                                  GridView(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 5,
-                                      childAspectRatio: 1,
-                                      crossAxisSpacing: 8,
-                                      mainAxisSpacing: 8
-                                    ),
-                                    children: item.characterAbstracts.map((character) =>
-                                      GestureDetector(
-                                        onTap: () {
-                                          showModalBottomSheet(
-                                            context: context,
-                                            isScrollControlled: true,
-                                            useSafeArea: true,
-                                            enableDrag: true,
-                                            clipBehavior: Clip.hardEdge,
-                                            builder: (context) {
-                                              return SizedBox(
-                                                height: MediaQuery.of(context).size.height * 0.9,
-                                                child: _CharacterDetail(
-                                                  pageId: character.entryPageId,
-                                                  breakType: breakType
-                                                )
-                                              );
-                                            },
-                                          );
-                                        },
-                                        child: Container(
-                                          clipBehavior: Clip.hardEdge,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Stack(
-                                            children: [
-                                              Image.asset(
-                                                'assets/rank_bg/${switch (breakType) {
-                                                  BreakType.talentLevelUp => character.filterValues.characterRarity!.valueTypes[0].enumString,
-                                                  BreakType.weaponAscension => character.filterValues.weaponRarity!.valueTypes[0].enumString
-                                                }}.png'
-                                              ),
-                                              CachedNetworkImage(
-                                                imageUrl: character.iconUrl
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    ).toList(),
+                                      ).toList(),
+                                    )
                                   ),
                                 ],
                               ),
@@ -660,34 +695,9 @@ class _MaterialTabView extends HookConsumerWidget {
       error: (error, stackTrace) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/images/icons/error_icon.png'),
-          Text(error.toString()),
-          TextButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('エラー詳細'),
-                    content: SingleChildScrollView(child: Text(stackTrace.toString())),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                          Navigator.pop(context);
-                        },
-                        child: const Text('コピー')
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('閉じる')
-                      )
-                    ],
-                  );
-                },
-              );
-            },
-            child: const Text('エラー詳細')
+          ErrorView(
+            error: error,
+            stackTrace: stackTrace,
           ),
           TextButton(
             onPressed: () {
@@ -925,34 +935,9 @@ class _CharacterDetail extends HookConsumerWidget {
       error: (error, stackTrace) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/images/icons/error_icon.png'),
-          Text(error.toString()),
-          TextButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('エラー詳細'),
-                    content: SingleChildScrollView(child: Text(stackTrace.toString())),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                          Navigator.pop(context);
-                        },
-                        child: const Text('コピー')
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('閉じる')
-                      )
-                    ],
-                  );
-                },
-              );
-            },
-            child: const Text('エラー詳細')
+          ErrorView(
+            error: error,
+            stackTrace: stackTrace,
           ),
           TextButton(
             onPressed: () {
@@ -997,14 +982,15 @@ class _EventDetail extends StatelessWidget {
             const ListTile(
               title: Text('報酬一覧'),
             ),
-            WaterfallFlow.builder(
+            GridView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 5,
                 crossAxisSpacing: 8,
-                mainAxisSpacing: 8
+                mainAxisSpacing: 8,
+                childAspectRatio: 1,
               ),
               itemCount: actItem.rewardList.length,
               itemBuilder: (context, index) {
@@ -1024,17 +1010,26 @@ class _EventDetail extends StatelessWidget {
                             alignment: Alignment.bottomCenter,
                             children: [
                               Image.asset('assets/rank_bg/${reward.rarity}.png'),
-                              CachedNetworkImage(imageUrl: reward.icon)
+                              CachedNetworkImage(imageUrl: reward.icon),
+                              if (reward.num > 0) Container(
+                                padding: const EdgeInsets.all(2),
+                                margin: const EdgeInsets.only(bottom: 2),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
+                                  color: Colors.black.withOpacity(0.5)
+                                ),
+                                child: Text(
+                                  'x${reward.num}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white
+                                  )
+                                )
+                              )
                             ],
                           )
                         ),
                       ),
-                      Text(
-                        'x${reward.num}',
-                        style: const TextStyle(
-                          fontSize: 14
-                        )
-                      )
                     ]
                   )
                 );

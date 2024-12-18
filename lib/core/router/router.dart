@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lumine/app.dart';
 import 'package:lumine/core/provider/shared_preferences.dart';
 import 'package:lumine/features/account/account_view.dart';
@@ -12,6 +13,14 @@ import 'package:lumine/features/calendar/calendar_view.dart';
 import 'package:lumine/features/daily_bonus/daily_bonus_view.dart';
 import 'package:lumine/features/exchange_code/exchange_code_view.dart';
 import 'package:lumine/features/main_view.dart';
+import 'package:lumine/features/menu/menu_view.dart';
+import 'package:lumine/features/menu/ui/view/about_app_view.dart';
+import 'package:lumine/features/menu/ui/view/license_view.dart';
+import 'package:lumine/features/settings/settings_view.dart';
+import 'package:lumine/features/settings/ui/view/account_settings_view.dart';
+import 'package:lumine/features/settings/ui/view/notification_settings_view.dart';
+import 'package:lumine/features/settings/ui/view/storage_settings_view.dart';
+import 'package:lumine/features/settings/ui/view/theme_settings_view.dart';
 import 'package:lumine/features/setup/login_view.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +28,7 @@ import 'package:go_router/go_router.dart';
 part 'router.g.dart';
 
 @Riverpod(keepAlive: true)
-GoRouter goRouter(GoRouterRef ref) => GoRouter(
+GoRouter goRouter(Ref ref) => GoRouter(
   routes: $appRoutes,
   navigatorKey: App.navigatorKey,
   initialLocation: ref.read(sharedPreferencesProvider).getBool('is_initialized') ?? false ?
@@ -145,4 +154,86 @@ class CalendarRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) => const CalendarView();
+}
+
+@TypedGoRoute<MenuRoute>(
+  path: '/menu'
+)
+class MenuRoute extends GoRouteData {
+  const MenuRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const MenuView();
+}
+
+@TypedGoRoute<AboutAppRoute>(
+  path: '/about-app'
+)
+class AboutAppRoute extends GoRouteData {
+  const AboutAppRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const AboutAppView();
+}
+
+@TypedGoRoute<LicenseRoute>(
+  path: '/license'
+)
+class LicenseRoute extends GoRouteData {
+  const LicenseRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const LicenseView();
+}
+
+@TypedGoRoute<SettingsRoute>(
+  path: '/settings',
+  routes: [
+    TypedGoRoute<AccountSettingsRoute>(
+      path: 'account'
+    ),
+    TypedGoRoute<NotificationSettingsRoute>(
+      path: 'notification'
+    ),
+    TypedGoRoute<StorageSettingsRoute>(
+      path: 'storage'
+    ),
+    TypedGoRoute<ThemeSettingsRoute>(
+      path: 'theme'
+    ),
+  ]
+)
+class SettingsRoute extends GoRouteData {
+  const SettingsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => SettingsView();
+}
+
+class AccountSettingsRoute extends GoRouteData {
+  const AccountSettingsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const AccountSettingsView();
+}
+
+class NotificationSettingsRoute extends GoRouteData {
+  const NotificationSettingsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const NotificationSettingView();
+}
+
+class StorageSettingsRoute extends GoRouteData {
+  const StorageSettingsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const StorageSettingsView();
+}
+
+class ThemeSettingsRoute extends GoRouteData {
+  const ThemeSettingsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const ThemeSettingView();
 }

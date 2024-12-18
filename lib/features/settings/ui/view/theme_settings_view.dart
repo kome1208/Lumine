@@ -10,7 +10,6 @@ class ThemeSettingView extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fontFamily = ref.watch(appearanceNotifierProvider.select((settings) => settings.fontFamily));
     final colorScheme = ref.watch(appearanceNotifierProvider.select((settings) => settings.colorScheme));
-    final replaceArchonQuest = ref.watch(appearanceNotifierProvider.select((settings) => settings.replaceArchonQuest));
     final useDynamicColor = ref.watch(appearanceNotifierProvider.select((settings) => settings.useDynamicColor));
 
     return Scaffold(
@@ -115,15 +114,6 @@ class ThemeSettingView extends HookConsumerWidget {
                 },
               );
             },
-          ),
-          SwitchListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            title: const Text('魔神任務の置き換え'),
-            subtitle: const Text('ホームタブの魔神任務情報を参量物質変化器に置き換える'),
-            onChanged: (value) {
-              ref.watch(appearanceNotifierProvider.notifier).setReplaceArchonQuest(value);                
-            },
-            value: replaceArchonQuest
           ),
         ]
       )

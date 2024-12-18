@@ -6,7 +6,7 @@ part 'game_record_character_detail_model.g.dart';
 class GameRecordCharacterDetail {
   final List<CharacterDetail> list;
   @JsonKey(name: 'property_map')
-  final Map<String, PropertyMap> propertyMap;
+  final Map<String, PropertyMap?> propertyMap;
 
   GameRecordCharacterDetail({
     required this.list,

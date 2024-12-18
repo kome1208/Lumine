@@ -16,7 +16,17 @@ class TestView extends HookConsumerWidget {
             title: Text('TestView'),
           ),
           SliverFillRemaining(
-            child: Center(child: Text('Hello')),
+            child: Column(
+              children: [
+                Card.outlined(
+                  child: ListTile(
+                    leading: Icon(Icons.info_outline),
+                    title: Text('Test Card'),
+                    subtitle: Text('Test Card Subtitle')
+                  )
+                )
+              ]
+            ),
           ),
         ],
       )

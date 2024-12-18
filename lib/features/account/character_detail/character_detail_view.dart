@@ -8,6 +8,7 @@ import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/api/model/game_record_character_detail_model.dart';
 import 'package:lumine/features/account/character_detail/data/game_record_character_detail_provider.dart';
+import 'package:lumine/widgets/error_view.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 const Map<String, dynamic> elementIcons = {
@@ -53,6 +54,39 @@ class CharacterDetailView extends HookConsumerWidget {
           final constellations = characterDetailData.list.first.constellations;
           final selectedProps = characterDetailData.list.first.selectedProperties;
           final recommendProps = characterDetailData.list.first.recommendRelicProperty;
+          final baseProps = characterDetailData.list.first.baseProperties;
+          final extraProps = characterDetailData.list.first.extraProperties;
+          final elemProps = characterDetailData.list.first.elementProperties;
+
+          List<Widget> generatePropList(List<CharacterDetailProperty> props) {
+            return props.mapIndexed((index, prop) {
+              final propMap = characterDetailData.propertyMap['${prop.propertyType}']!;
+
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: SizedBox.square(
+                  dimension: 32,
+                  child: propMap.icon.isNotEmpty ?
+                  CachedNetworkImage(
+                    imageUrl: propMap.icon
+                  ) :
+                  null,
+                ),
+                title: Text(propMap.filterName),
+                subtitle: Row(
+                  children: [
+                    Text(prop.base),
+                    if (prop.add.isNotEmpty) Text(
+                      '+${prop.add}',
+                      style: const TextStyle(
+                        color: Color(0xff4dffff)
+                      )
+                    )
+                  ],
+                ),
+              );
+            }).toList();
+          }
 
           return Column(
             children: [
@@ -63,12 +97,14 @@ class CharacterDetailView extends HookConsumerWidget {
                   width: 38,
                   height: 38,
                 ),
-                titleTextStyle: const TextStyle(
-                  fontSize: 20
-                ),
                 title: Row(
                   children: [
-                    Text(character.name),
+                    Text(
+                      character.name,
+                      style:const TextStyle(
+                        fontSize: 20
+                      )
+                    ),
                     Container(
                       padding: const EdgeInsets.all(4),
                       margin: const EdgeInsets.only(left: 8),
@@ -247,6 +283,41 @@ class CharacterDetailView extends HookConsumerWidget {
                                       maxLines: 1,
                                     ),
                                   )
+                                );
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('全てのステータス'),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('全てのステータス'),
+                                      content: SizedBox(
+                                        width: 300,
+                                        height: 700,
+                                        child: ListView(
+                                          shrinkWrap: true,
+                                          children: [
+                                            const Text('基本ステータス'),
+                                            ...generatePropList(baseProps),
+                                            const Text('高級ステータス'),
+                                            ...generatePropList(extraProps),
+                                            const Text('元素ステータス'),
+                                            ...generatePropList(elemProps)
+                                          ],
+                                        )
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          child: const Text('閉じる'),
+                                          onPressed: () => Navigator.pop(context),
+                                        )
+                                      ],
+                                    );
+                                  },
                                 );
                               },
                             ),
@@ -578,34 +649,9 @@ class CharacterDetailView extends HookConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/icons/error_icon.png'),
-                Text(error.toString()),
-                TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('エラー詳細'),
-                          content: SingleChildScrollView(child: Text(stackTrace.toString())),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                                Navigator.pop(context);
-                              },
-                              child: const Text('コピー')
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('閉じる')
-                            )
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  child: const Text('エラー詳細')
+                ErrorView(
+                  error: error,
+                  stackTrace: stackTrace,
                 ),
                 TextButton(
                   onPressed: () {

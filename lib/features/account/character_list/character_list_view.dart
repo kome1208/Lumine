@@ -1,11 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/features/account/character_list/data/game_record_character_list_provider.dart';
 import 'package:lumine/features/account/character_detail/character_detail_view.dart';
 import 'package:lumine/widgets/divider_with_text.dart';
+import 'package:lumine/widgets/error_view.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 const Map<String, dynamic> elementIcons = {
@@ -18,9 +18,9 @@ const Map<String, dynamic> elementIcons = {
   'Cryo': 'assets/element_icons/cryo.png'
 };
 
-final characterSortTypeProvider = StateProvider<int>((ref) => CharacterSortType.def.type);
-final characterListElementFilterProvider = StateProvider<List<String>>((ref) => []);
-final characterListWeaponFilterProvider = StateProvider<List<int>>((ref) => []);
+final characterSortTypeProvider = AutoDisposeStateProvider<int>((ref) => CharacterSortType.def.type);
+final characterListElementFilterProvider = AutoDisposeStateProvider<List<String>>((ref) => []);
+final characterListWeaponFilterProvider = AutoDisposeStateProvider<List<int>>((ref) => []);
 
 class CharacterListView extends HookConsumerWidget {
   const CharacterListView({super.key});
@@ -99,73 +99,83 @@ class CharacterListView extends HookConsumerWidget {
       ),
       body: characterList.when(
         data: (characterListData) {
-          return WaterfallFlow.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            shrinkWrap: true,
-            itemCount: characterListData.list.length,
-            gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-            ),
-            itemBuilder: (context, index) {
-              final character = characterListData.list[index];
-              return GestureDetector(
-                onTap: () {
-                  showCharacterSheet(character.id);
-                },
-                child: GridTile(
-                  child: Column(
-                    children: [
-                      Container(
-                        clipBehavior: Clip.hardEdge,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: theme.colorScheme.secondaryContainer
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Stack(
-                              children: [
-                                Image.asset('assets/rank_${character.rarity}.png'),
-                                CachedNetworkImage(
-                                  imageUrl: character.icon
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(4),
-                                  child: Image.asset(
-                                    elementIcons[character.element],
-                                    width: 20,
-                                    height: 20,
-                                  )
-                                ),
-                                if (character.activedConstellationNum != 0) Padding(
-                                  padding: const EdgeInsets.all(4),
-                                  child: Container(
-                                    alignment: Alignment.topRight,
-                                    child: Text(
-                                      'C${character.activedConstellationNum}',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        backgroundColor: Colors.black.withOpacity(0.5),
+          return RefreshIndicator(
+            onRefresh: () async {
+              characterListNotifier.refresh();
+            },
+            child: WaterfallFlow.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              physics: const AlwaysScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: characterListData.list.length,
+              gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              itemBuilder: (context, index) {
+                final character = characterListData.list[index];
+                return GestureDetector(
+                  onTap: () {
+                    showCharacterSheet(character.id);
+                  },
+                  child: GridTile(
+                    child: Column(
+                      children: [
+                        Container(
+                          clipBehavior: Clip.hardEdge,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: theme.colorScheme.secondaryContainer
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Image.asset('assets/rank_${character.rarity}.png'),
+                                  CachedNetworkImage(
+                                    imageUrl: character.icon
+                                  ),
+                                  Positioned(
+                                    left: 4,
+                                    top: 4,
+                                    child: Image.asset(
+                                      elementIcons[character.element],
+                                      width: 20,
+                                      height: 20,
+                                    )
+                                  ),
+                                  if (character.activedConstellationNum != 0) Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                                      decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(12)),
+                                        color: Colors.black.withOpacity(0.5),
+                                      ),
+                                      child: Text(
+                                        'C${character.activedConstellationNum}',
+                                        style: const TextStyle(color: Colors.white)
                                       )
                                     )
                                   )
-                                ),
-                              ],
-                            ),
-                            Text('Lv.${character.level}')
-                          ],
+                                ],
+                              ),
+                              Text('Lv.${character.level}')
+                            ],
+                          ),
                         ),
-                      ),
-                      Text(character.name, maxLines: 1, overflow: TextOverflow.ellipsis)
-                    ],
+                        Text(character.name, maxLines: 1, overflow: TextOverflow.ellipsis)
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           );
         },
         error: (error, stackTrace) {
@@ -173,34 +183,9 @@ class CharacterListView extends HookConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/icons/error_icon.png'),
-                Text(error.toString()),
-                TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('エラー詳細'),
-                          content: SingleChildScrollView(child: Text(stackTrace.toString())),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                                Navigator.pop(context);
-                              },
-                              child: const Text('コピー')
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('閉じる')
-                            )
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  child: const Text('エラー詳細')
+                ErrorView(
+                  error: error,
+                  stackTrace: stackTrace,
                 ),
                 TextButton(
                   onPressed: () {

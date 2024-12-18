@@ -19,6 +19,10 @@ List<RouteBase> get $appRoutes => [
       $dailyBonusRoute,
       $exchangeCodeRoute,
       $calendarRoute,
+      $menuRoute,
+      $aboutAppRoute,
+      $licenseRoute,
+      $settingsRoute,
     ];
 
 RouteBase get $setupRoute => GoRouteData.$route(
@@ -293,11 +297,189 @@ extension $CalendarRouteExtension on CalendarRoute {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $menuRoute => GoRouteData.$route(
+      path: '/menu',
+      factory: $MenuRouteExtension._fromState,
+    );
+
+extension $MenuRouteExtension on MenuRoute {
+  static MenuRoute _fromState(GoRouterState state) => const MenuRoute();
+
+  String get location => GoRouteData.$location(
+        '/menu',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $aboutAppRoute => GoRouteData.$route(
+      path: '/about-app',
+      factory: $AboutAppRouteExtension._fromState,
+    );
+
+extension $AboutAppRouteExtension on AboutAppRoute {
+  static AboutAppRoute _fromState(GoRouterState state) => const AboutAppRoute();
+
+  String get location => GoRouteData.$location(
+        '/about-app',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $licenseRoute => GoRouteData.$route(
+      path: '/license',
+      factory: $LicenseRouteExtension._fromState,
+    );
+
+extension $LicenseRouteExtension on LicenseRoute {
+  static LicenseRoute _fromState(GoRouterState state) => const LicenseRoute();
+
+  String get location => GoRouteData.$location(
+        '/license',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $settingsRoute => GoRouteData.$route(
+      path: '/settings',
+      factory: $SettingsRouteExtension._fromState,
+      routes: [
+        GoRouteData.$route(
+          path: 'account',
+          factory: $AccountSettingsRouteExtension._fromState,
+        ),
+        GoRouteData.$route(
+          path: 'notification',
+          factory: $NotificationSettingsRouteExtension._fromState,
+        ),
+        GoRouteData.$route(
+          path: 'storage',
+          factory: $StorageSettingsRouteExtension._fromState,
+        ),
+        GoRouteData.$route(
+          path: 'theme',
+          factory: $ThemeSettingsRouteExtension._fromState,
+        ),
+      ],
+    );
+
+extension $SettingsRouteExtension on SettingsRoute {
+  static SettingsRoute _fromState(GoRouterState state) => const SettingsRoute();
+
+  String get location => GoRouteData.$location(
+        '/settings',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+extension $AccountSettingsRouteExtension on AccountSettingsRoute {
+  static AccountSettingsRoute _fromState(GoRouterState state) =>
+      const AccountSettingsRoute();
+
+  String get location => GoRouteData.$location(
+        '/settings/account',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+extension $NotificationSettingsRouteExtension on NotificationSettingsRoute {
+  static NotificationSettingsRoute _fromState(GoRouterState state) =>
+      const NotificationSettingsRoute();
+
+  String get location => GoRouteData.$location(
+        '/settings/notification',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+extension $StorageSettingsRouteExtension on StorageSettingsRoute {
+  static StorageSettingsRoute _fromState(GoRouterState state) =>
+      const StorageSettingsRoute();
+
+  String get location => GoRouteData.$location(
+        '/settings/storage',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+extension $ThemeSettingsRouteExtension on ThemeSettingsRoute {
+  static ThemeSettingsRoute _fromState(GoRouterState state) =>
+      const ThemeSettingsRoute();
+
+  String get location => GoRouteData.$location(
+        '/settings/theme',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$goRouterHash() => r'1b855e01860af1decf0162c35b9dd1704072ae66';
+String _$goRouterHash() => r'70921fd4c469b4746d55c0ccb83fafde22ea0695';
 
 /// See also [goRouter].
 @ProviderFor(goRouter)

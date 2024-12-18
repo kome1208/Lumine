@@ -2,11 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:lumine/features/settings/ui/view/account_settings_view.dart';
-import 'package:lumine/features/settings/ui/view/notification_settings_view.dart';
-import 'package:lumine/features/settings/ui/view/storage_settings_view.dart';
-import 'package:lumine/features/settings/ui/view/theme_settings_view.dart';
-import 'package:lumine/features/setup/login_view.dart';
+import 'package:lumine/core/router/router.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SettingsView extends HookConsumerWidget {
@@ -26,7 +22,7 @@ class SettingsView extends HookConsumerWidget {
             title: const Text('表示設定'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const ThemeSettingView()));
+              ThemeSettingsRoute().push(context);
             },
           ),
           if (Platform.isAndroid) ListTile(
@@ -35,7 +31,7 @@ class SettingsView extends HookConsumerWidget {
             title: const Text('通知設定'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationSettingView()));
+              NotificationSettingsRoute().push(context);
             },
           ),
           ListTile(
@@ -44,7 +40,7 @@ class SettingsView extends HookConsumerWidget {
             title: const Text('アカウント設定'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const AccountSettingsView()));
+              AccountSettingsRoute().push(context);
             },
           ),
           ListTile(
@@ -53,7 +49,7 @@ class SettingsView extends HookConsumerWidget {
             title: const Text('ストレージ'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const StorageSettingsView()));
+              StorageSettingsRoute().push(context);
             },
           ),
           ListTile(
@@ -61,12 +57,7 @@ class SettingsView extends HookConsumerWidget {
             title: const Text('ウェルカム画面を開く'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SetupView()
-                )
-              );
+              SetupRoute().go(context);
             },
           ),
           if (Platform.isAndroid) ListTile(

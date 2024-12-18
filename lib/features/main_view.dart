@@ -19,6 +19,8 @@ class MainView extends HookConsumerWidget {
     final pageController = usePageController();
     final packageInfo = ref.watch(packageInfoProvider);
 
+    final theme = Theme.of(context);
+
     const pageList = [
       HomeView(),
       AccountView(),
@@ -40,6 +42,7 @@ class MainView extends HookConsumerWidget {
         }
       ),
       bottomNavigationBar: NavigationBar(
+        backgroundColor: ElevationOverlay.applySurfaceTint(theme.colorScheme.surface, theme.colorScheme.primary, 3),
         height: 70,
         destinations: [
           const NavigationDestination(

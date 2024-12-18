@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/provider/hoyolab_api.dart';
 import 'package:lumine/features/daily_bonus/data/award_list_notifier_provider.dart';
@@ -10,7 +9,7 @@ import 'package:lumine/features/daily_bonus/data/reward_history_provider.dart';
 import 'package:lumine/features/daily_bonus/data/sign_info_notifier_provider.dart';
 import 'package:lumine/features/daily_bonus/data/task_list_provider.dart';
 import 'package:lumine/utils/date_formatter.dart';
-import 'package:lumine/widgets/my_card.dart';
+import 'package:lumine/widgets/error_view.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 class DailyBonusView extends HookConsumerWidget {
@@ -22,6 +21,9 @@ class DailyBonusView extends HookConsumerWidget {
     final signInfo = ref.watch(signInfoNotifierProvider);
     final resignInfo = ref.watch(resignInfoNotifierProvider);
     final extraAward = ref.watch(extraAwardNotifierProvider);
+
+    final theme = Theme.of(context);
+    final cardColor = ElevationOverlay.applySurfaceTint(theme.colorScheme.surface, theme.colorScheme.primary, 3);
 
     return Scaffold(
       appBar: AppBar(
@@ -55,67 +57,70 @@ class DailyBonusView extends HookConsumerWidget {
                             ],
                           ),
                         ),
-                        MyCard(
+                        Card.filled(
+                          color: cardColor,
                           margin: const EdgeInsets.symmetric(horizontal: 16),
-                          padding: const EdgeInsets.all(8),
-                          child: Column(
-                            children: [
-                              const Text('本日のログインボーナスを受け取ると、追加のボーナスも獲得できます'),
-                              const SizedBox(height: 4),
-                              WaterfallFlow.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 7,
-                                  crossAxisSpacing: 4
-                                ),
-                                itemCount: value.awards.length,
-                                itemBuilder: (context, index) {
-                                  final award = value.awards[index];
+                          child: Padding(
+                            padding: EdgeInsets.all(8),
+                            child: Column(
+                              children: [
+                                const Text('本日のログインボーナスを受け取ると、追加のボーナスも獲得できます'),
+                                const SizedBox(height: 4),
+                                WaterfallFlow.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 7,
+                                    crossAxisSpacing: 4
+                                  ),
+                                  itemCount: value.awards.length,
+                                  itemBuilder: (context, index) {
+                                    final award = value.awards[index];
 
-                                  return GridTile(
-                                    child: Column(
-                                      children: [
-                                        AspectRatio(
-                                          aspectRatio: 1,
-                                          child: Stack(
-                                            children: [
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                  color: const Color.fromRGBO(235, 232, 213, 1),
-                                                  borderRadius: BorderRadius.circular(100)
-                                                ),
-                                                child: CachedNetworkImage(
-                                                  imageUrl: award.icon
-                                                ),
-                                              ),
-                                              if (value.totalCnt > index)
-                                              Center(
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(8),
-                                                  constraints: const BoxConstraints.expand(),
+                                    return GridTile(
+                                      child: Column(
+                                        children: [
+                                          AspectRatio(
+                                            aspectRatio: 1,
+                                            child: Stack(
+                                              children: [
+                                                Container(
                                                   decoration: BoxDecoration(
-                                                    color: Colors.white.withOpacity(0.5),
+                                                    color: const Color.fromRGBO(235, 232, 213, 1),
                                                     borderRadius: BorderRadius.circular(100)
                                                   ),
-                                                  child: Image.asset('assets/check.png'),
+                                                  child: CachedNetworkImage(
+                                                    imageUrl: award.icon
+                                                  ),
                                                 ),
-                                              )
-                                            ],
+                                                if (value.totalCnt > index)
+                                                Center(
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(8),
+                                                    constraints: const BoxConstraints.expand(),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white.withOpacity(0.5),
+                                                      borderRadius: BorderRadius.circular(100)
+                                                    ),
+                                                    child: Image.asset('assets/check.png'),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                        Text(
-                                          'x${award.cnt}',
-                                          style: const TextStyle(
-                                            fontSize: 12
-                                          ),
-                                        )
-                                      ],
-                                    )
-                                  );
-                                },
-                              ),
-                            ],
+                                          Text(
+                                            'x${award.cnt}',
+                                            style: const TextStyle(
+                                              fontSize: 12
+                                            ),
+                                          )
+                                        ],
+                                      )
+                                    );
+                                  },
+                                ),
+                              ],
+                            )
                           )
                         )
                       ];
@@ -312,34 +317,9 @@ class DailyBonusView extends HookConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/icons/error_icon.png'),
-                Text(error.toString()),
-                TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('エラー詳細'),
-                          content: Text(stackTrace.toString()),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                                Navigator.pop(context);
-                              },
-                              child: const Text('コピー')
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('閉じる')
-                            )
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  child: const Text('エラー詳細')
+                ErrorView(
+                  error: error,
+                  stackTrace: stackTrace,
                 ),
                 TextButton(
                   onPressed: () {
@@ -526,34 +506,9 @@ class _CheckinMakeupView extends ConsumerWidget {
         error: (error, stackTrace) => Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/images/icons/error_icon.png'),
-            Text(error.toString()),
-            TextButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: const Text('エラー詳細'),
-                      content: SingleChildScrollView(child: Text(stackTrace.toString())),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                            Navigator.pop(context);
-                          },
-                          child: const Text('コピー')
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('閉じる')
-                        )
-                      ],
-                    );
-                  },
-                );
-              },
-              child: const Text('エラー詳細')
+            ErrorView(
+              error: error,
+              stackTrace: stackTrace,
             ),
             TextButton(
               onPressed: () {
@@ -620,7 +575,21 @@ class _RewardHistoryView extends ConsumerWidget {
         );
       },
       error: (error, stackTrace) {
-        return Text(error.toString());
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ErrorView(
+                error: error,
+                stackTrace: stackTrace,
+              ),
+              TextButton(
+                onPressed: () => ref.read(rewardHistoryNotifierProvider.notifier).refresh(),
+                child: const Text('再試行')
+              )
+            ]
+          )
+        );
       },
       loading: () => const Center(child: CircularProgressIndicator())
     );

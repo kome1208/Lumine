@@ -29,7 +29,7 @@ class SetupView extends HookConsumerWidget {
           LoginView(
             onNext: () {
               ref.read(sharedPreferencesProvider).setBool('is_initialized', true);
-              const HomeRoute().pushReplacement(context);
+              const HomeRoute().go(context);
             }
           ),
         ],

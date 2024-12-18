@@ -1,12 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lumine/core/provider/app_update_provider.dart';
 import 'package:lumine/core/provider/package_info.dart';
 import 'package:lumine/core/router/router.dart';
-import 'package:lumine/features/menu/ui/view/about_app_view.dart';
 import 'package:lumine/features/menu/ui/view/test_view.dart';
-import 'package:lumine/features/settings/settings_view.dart';
 import 'package:lumine/widgets/divider_with_text.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -87,7 +86,7 @@ class MenuView extends ConsumerWidget {
           ),
           ListTile(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsView()));
+              SettingsRoute().push(context);
             },
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             leading: const Icon(Icons.settings),
@@ -96,7 +95,7 @@ class MenuView extends ConsumerWidget {
           ),
           ListTile(
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutAppView()));
+              context.push('/about-app');
             },
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             leading: const Icon(Icons.info_outline),

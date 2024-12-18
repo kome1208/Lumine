@@ -6,9 +6,11 @@ import 'package:lumine/features/announcement/data/event_list_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:lumine/features/announcement/data/notice_list_provider.dart';
 import 'package:lumine/utils/date_formatter.dart';
-import 'package:lumine/widgets/my_card.dart';
+import 'package:lumine/widgets/error_view.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import 'package:http/http.dart' as http;
 
 class AnnouncementView extends HookConsumerWidget{
   const AnnouncementView({super.key});
@@ -57,6 +59,8 @@ class _EventListView extends HookConsumerWidget {
     final eventList = ref.watch(eventListNotifierProvider);
     final eventListProvider = ref.read(eventListNotifierProvider.notifier);
 
+    final cardColor = ElevationOverlay.applySurfaceTint(Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.primary, 3);
+
     return eventList.when(
       skipLoadingOnReload: true,
       data: (eventListData) {
@@ -91,35 +95,88 @@ class _EventListView extends HookConsumerWidget {
                       statusMessage = '審査中';
                     }
 
-                    return MyCard(
+                    return Card.filled(
+                      color: cardColor,
                       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                       clipBehavior: Clip.hardEdge,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          AspectRatio(
-                            aspectRatio: 16 / 9,
-                            child: Stack(
-                              children: [
-                                CachedNetworkImage(
-                                  imageUrl: event.bannerUrl,
-                                  fit: BoxFit.cover,
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                                  decoration: BoxDecoration(
-                                    color: statusColor.withOpacity(0.8),
-                                    borderRadius: const BorderRadius.only(bottomRight: Radius.circular(16))
-                                  ),
-                                  child: Text(
-                                    statusMessage,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                          GestureDetector(
+                            child: AspectRatio(
+                              aspectRatio: 16 / 9,
+                              child: Stack(
+                                children: [
+                                  Hero(
+                                    tag: event.id,
+                                    child: CachedNetworkImage(
+                                      imageUrl: event.bannerUrl,
+                                      fit: BoxFit.cover,
                                     )
                                   ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withOpacity(0.8),
+                                      borderRadius: const BorderRadius.only(bottomRight: Radius.circular(12))
+                                    ),
+                                    child: Text(
+                                      statusMessage,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      )
+                                    ),
+                                  )
+                                ]
+                              )
+                            ),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => Scaffold(
+                                    appBar: AppBar(
+                                      actions: [
+                                        IconButton(
+                                          icon: const Icon(Icons.more_horiz),
+                                          onPressed: () {
+                                            showModalBottomSheet(
+                                              context: context,
+                                              showDragHandle: true,
+                                              enableDrag: true,
+                                              builder: (context) {
+                                                return _ImageActionSheet(imageUrl: event.bannerUrl);
+                                              },
+                                            );
+                                          }
+                                        )
+                                      ],
+                                    ),
+                                    body: Container(
+                                      constraints: const BoxConstraints.expand(),
+                                      child: InteractiveViewer(
+                                        child: Hero(
+                                          tag: event.id,
+                                          child: CachedNetworkImage(
+                                            imageUrl: event.bannerUrl,
+                                            fit: BoxFit.contain
+                                          )
+                                        ),
+                                      )
+                                    )
+                                  )
                                 )
-                              ]
-                            )
+                              );
+                            },
+                            onLongPress: () {
+                              showModalBottomSheet(
+                                context: context,
+                                showDragHandle: true,
+                                enableDrag: true,
+                                builder: (context) {
+                                  return _ImageActionSheet(imageUrl: event.bannerUrl);
+                                },
+                              );
+                            },
                           ),
                           ListTile(
                             title: Text(
@@ -163,34 +220,9 @@ class _EventListView extends HookConsumerWidget {
       error: (error, stackTrace) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/images/icons/error_icon.png'),
-          Text(error.toString()),
-          TextButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('エラー詳細'),
-                    content: SingleChildScrollView(child: Text(stackTrace.toString())),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                          Navigator.pop(context);
-                        },
-                        child: const Text('コピー')
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('閉じる')
-                      )
-                    ],
-                  );
-                },
-              );
-            },
-            child: const Text('エラー詳細')
+          ErrorView(
+            error: error,
+            stackTrace: stackTrace,
           ),
           TextButton(
             onPressed: () {
@@ -266,34 +298,9 @@ class _NoticeListView extends HookConsumerWidget {
       error: (error, stackTrace) => Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/images/icons/error_icon.png'),
-          Text(error.toString()),
-          TextButton(
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    title: const Text('エラー詳細'),
-                    content: SingleChildScrollView(child: Text(stackTrace.toString())),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                          Navigator.pop(context);
-                        },
-                        child: const Text('コピー')
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('閉じる')
-                      )
-                    ],
-                  );
-                },
-              );
-            },
-            child: const Text('エラー詳細')
+          ErrorView(
+            error: error,
+            stackTrace: stackTrace,
           ),
           TextButton(
             onPressed: () {
@@ -327,5 +334,76 @@ String formatTimeAgo(int timestamp) {
     } else {
       return DateFormatter.formatDate(date.millisecondsSinceEpoch, 'MM/dd');
     }
+  }
+}
+
+class _ImageActionSheet extends StatelessWidget {
+  const _ImageActionSheet({
+    required this.imageUrl,
+  });
+
+  final String imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ListTile(
+          leading: const Icon(Icons.open_in_browser),
+          title: const Text('画像をブラウザで開く'),
+          onTap: () {
+            launchUrlString(
+              imageUrl,
+              mode: LaunchMode.externalApplication
+            );
+            Navigator.pop(context);
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.link),
+          title: const Text('画像リンクをコピー'),
+          onTap: () {
+            Clipboard.setData(ClipboardData(text: imageUrl));
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('画像リンクをコピーしました'),
+                showCloseIcon: true,
+                behavior: SnackBarBehavior.floating,
+              )
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.share),
+          title: const Text('画像を共有'),
+          onTap: () async {
+            Navigator.pop(context);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('画像をダウンロード中'),
+                showCloseIcon: true,
+                behavior: SnackBarBehavior.floating,
+              )
+            );
+            try {
+              final imageBytes = await http.readBytes(Uri.parse(imageUrl));
+
+              await Share.shareXFiles([XFile.fromData(imageBytes, mimeType: 'image/png')]);
+            } catch (e) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('ダウンロードに失敗しました'),
+                  showCloseIcon: true,
+                  behavior: SnackBarBehavior.floating,
+                )
+              );
+            }
+          },
+        ),
+      ]
+    );
   }
 }

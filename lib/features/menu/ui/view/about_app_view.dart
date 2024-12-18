@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/provider/app_update_provider.dart';
 import 'package:lumine/core/provider/package_info.dart';
-import 'package:lumine/features/menu/ui/view/license_view.dart';
+import 'package:lumine/core/router/router.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 class AboutAppView extends HookConsumerWidget {
@@ -37,7 +37,7 @@ class AboutAppView extends HookConsumerWidget {
             leading: const Icon(Icons.info_outline),
             title: const Text('ライセンス'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LicenseView())),
+            onTap: () => LicenseRoute().push(context),
           ),
           ListTile(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),

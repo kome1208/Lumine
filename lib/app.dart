@@ -36,6 +36,7 @@ class App extends HookConsumerWidget {
         return MaterialApp.router(
           title: 'Lumine',
           theme: getTheme(useDynamicColor),
+          themeMode: ThemeMode.dark,
           routerConfig: routerConfig,
         );
       },

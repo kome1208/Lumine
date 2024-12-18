@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/features/account/achievement/data/achievement_provider.dart';
+import 'package:lumine/widgets/error_view.dart';
 
 class AchievementView extends HookConsumerWidget {
   const AchievementView({super.key});
@@ -61,34 +61,9 @@ class AchievementView extends HookConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/icons/error_icon.png'),
-                Text(error.toString()),
-                TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('エラー詳細'),
-                          content: SingleChildScrollView(child: Text(stackTrace.toString())),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                                Navigator.pop(context);
-                              },
-                              child: const Text('コピー')
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('閉じる')
-                            )
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  child: const Text('エラー詳細')
+                ErrorView(
+                  error: error,
+                  stackTrace: stackTrace,
                 ),
                 TextButton(
                   onPressed: () {

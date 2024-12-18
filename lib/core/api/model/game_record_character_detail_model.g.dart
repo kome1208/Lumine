@@ -13,7 +13,8 @@ GameRecordCharacterDetail _$GameRecordCharacterDetailFromJson(
           .map((e) => CharacterDetail.fromJson(e as Map<String, dynamic>))
           .toList(),
       propertyMap: (json['property_map'] as Map<String, dynamic>).map(
-        (k, e) => MapEntry(k, PropertyMap.fromJson(e as Map<String, dynamic>)),
+        (k, e) => MapEntry(k,
+            e == null ? null : PropertyMap.fromJson(e as Map<String, dynamic>)),
       ),
     );
 

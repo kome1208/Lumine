@@ -6,7 +6,7 @@ part of 'package_info.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$packageInfoHash() => r'517f01fbab81b5ebd10a5d03633b9ffaee13310a';
+String _$packageInfoHash() => r'41becc3addedc53e378ee1d1462ccfd8ccf6cce1';
 
 /// See also [packageInfo].
 @ProviderFor(packageInfo)

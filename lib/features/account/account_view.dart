@@ -12,6 +12,7 @@ import 'package:lumine/core/router/router.dart';
 import 'package:lumine/features/account/character_list/data/game_record_character_list_provider.dart';
 import 'package:lumine/features/account/data/game_record.dart';
 import 'package:lumine/features/account/character_detail/character_detail_view.dart';
+import 'package:lumine/widgets/error_view.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
 
 final Map<String, dynamic> elementIcons = {
@@ -132,7 +133,7 @@ class AccountView extends HookConsumerWidget {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: value.avatars.map((item) {
+                            children: value.avatars.map((character) {
                               return GestureDetector(
                                 child: Container(
                                   margin: const EdgeInsets.only(left: 16),
@@ -147,36 +148,40 @@ class AccountView extends HookConsumerWidget {
                                       AspectRatio(
                                         aspectRatio: 1,
                                         child: Stack(
+                                          alignment: Alignment.center,
                                           children: [
-                                            Image.asset('assets/rank_${item.rarity}.png'),
+                                            Image.asset('assets/rank_${character.rarity}.png'),
                                             CachedNetworkImage(
-                                              imageUrl: item.image
+                                              imageUrl: character.image
                                             ),
-                                            Padding(
-                                              padding: const EdgeInsets.all(4),
+                                            Positioned(
+                                              left: 4,
+                                              top: 4,
                                               child: Image.asset(
-                                                elementIcons[item.element],
+                                                elementIcons[character.element],
                                                 width: 20,
                                                 height: 20,
                                               )
                                             ),
-                                            if (item.activedConstellationNum != 0) Padding(
-                                              padding: const EdgeInsets.all(4),
+                                            if (character.activedConstellationNum != 0) Positioned(
+                                              top: 0,
+                                              right: 0,
                                               child: Container(
-                                                alignment: Alignment.topRight,
+                                                padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(12)),
+                                                  color: Colors.black.withOpacity(0.5),
+                                                ),
                                                 child: Text(
-                                                  'C${item.activedConstellationNum}',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    backgroundColor: Colors.black.withOpacity(0.5),
-                                                  )
+                                                  'C${character.activedConstellationNum}',
+                                                  style: const TextStyle(color: Colors.white)
                                                 )
                                               )
-                                            ),
+                                            )
                                           ],
                                         ),
                                       ),
-                                      Text('Lv.${item.level}')
+                                      Text('Lv.${character.level}')
                                     ],
                                   )
                                 ),
@@ -190,7 +195,7 @@ class AccountView extends HookConsumerWidget {
                                     builder: (context) {
                                       return SizedBox(
                                         height: MediaQuery.of(context).size.height * 0.9,
-                                        child: CharacterDetailView(id: item.id)
+                                        child: CharacterDetailView(id: character.id)
                                       );
                                     },
                                   );
@@ -996,34 +1001,9 @@ class _CharacterSortView extends HookConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset('assets/images/icons/error_icon.png'),
-                Text(error.toString()),
-                TextButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: const Text('エラー詳細'),
-                          content: SingleChildScrollView(child: Text(stackTrace.toString())),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: stackTrace.toString()));
-                                Navigator.pop(context);
-                              },
-                              child: const Text('コピー')
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text('閉じる')
-                            )
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  child: const Text('エラー詳細')
+                ErrorView(
+                  error: error,
+                  stackTrace: stackTrace,
                 ),
                 TextButton(
                   onPressed: () {
