@@ -471,7 +471,7 @@ class _EventTabView extends HookConsumerWidget {
                               ActType.roleCombat => act.roleCombatDetail!.isUnlock ?
                               ListTile(
                                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                                title: const Text('獲得したスター'),
+                                title: const Text('最高記録'),
                                 trailing: Text(
                                   '第${act.roleCombatDetail!.maxRoundId}幕',
                                   style: const TextStyle(
