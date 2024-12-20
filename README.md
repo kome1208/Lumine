@@ -15,5 +15,10 @@
 
 ## スクリーンショット
 
-| ![Home](./.github/screenshots/home.png) | ![Character Detail](./.github/screenshots/character_detail.png) |
+### ホーム画面
+| ![Home](./.github/screenshots/home.png) | ![Home1](./.github/screenshots/home1.png) |
+|---|---|
+
+### キャラクター詳細
+| ![Home](./.github/screenshots/character_detail.png) | ![Home](./.github/screenshots/character_detail1.png) |
 |---|---|
