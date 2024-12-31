@@ -395,9 +395,8 @@ class HoYoLAB {
       if (data['retcode'] == 0) {
         final exCodeModule = data['data']['modules'].firstWhere((x) => x['module_type'] == 7, orElse: () => null);
 
-        final exchangeModule = ExchangeGroup.fromJson(exCodeModule['exchange_group']);
+        if (exCodeModule != null) return ExchangeGroup.fromJson(exCodeModule['exchange_group']);
 
-        if (exCodeModule != null) return exchangeModule;
         return null;
       } else {
         throw HoYoLABAPIError(data['retcode'], data['message'] ?? '不明なエラー');

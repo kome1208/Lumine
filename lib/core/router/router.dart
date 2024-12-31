@@ -38,6 +38,7 @@ GoRouter goRouter(Ref ref) => GoRouter(
 
 @TypedGoRoute<SetupRoute>(
   path: '/setup',
+  name: 'setup'
 )
 class SetupRoute extends GoRouteData {
   const SetupRoute();
@@ -48,6 +49,7 @@ class SetupRoute extends GoRouteData {
 
 @TypedGoRoute<HomeRoute>(
   path: '/',
+  name: 'home'
 )
 class HomeRoute extends GoRouteData {
   const HomeRoute();
@@ -58,6 +60,7 @@ class HomeRoute extends GoRouteData {
 
 @TypedGoRoute<AccountRoute>(
   path: '/account',
+  name: 'account'
 )
 class AccountRoute extends GoRouteData {
   const AccountRoute();
@@ -68,6 +71,7 @@ class AccountRoute extends GoRouteData {
 
 @TypedGoRoute<CharacterListRoute>(
   path: '/character-list',
+  name: 'character-list'
 )
 class CharacterListRoute extends GoRouteData {
   const CharacterListRoute();
@@ -78,6 +82,7 @@ class CharacterListRoute extends GoRouteData {
 
 @TypedGoRoute<AchievementRoute>(
   path: '/achievement',
+  name: 'achievement'
 )
 class AchievementRoute extends GoRouteData {
   const AchievementRoute();
@@ -88,6 +93,7 @@ class AchievementRoute extends GoRouteData {
 
 @TypedGoRoute<SpiralAbyssRoute>(
   path: '/spiral-abyss',
+  name: 'spiral-abyss'
 )
 class SpiralAbyssRoute extends GoRouteData {
   const SpiralAbyssRoute();
@@ -98,6 +104,7 @@ class SpiralAbyssRoute extends GoRouteData {
 
 @TypedGoRoute<RoleCombatRoute>(
   path: '/role-combat',
+  name: 'role-combat'
 )
 class RoleCombatRoute extends GoRouteData {
   const RoleCombatRoute();
@@ -108,6 +115,7 @@ class RoleCombatRoute extends GoRouteData {
 
 @TypedGoRoute<ResourceDataRoute>(
   path: '/resource-data',
+  name: 'resource-data'
 )
 class ResourceDataRoute extends GoRouteData {
   const ResourceDataRoute();
@@ -117,7 +125,8 @@ class ResourceDataRoute extends GoRouteData {
 }
 
 @TypedGoRoute<AnnouncementRoute>(
-  path: '/announcement'
+  path: '/announcement',
+  name: 'announcement'
 )
 class AnnouncementRoute extends GoRouteData {
   const AnnouncementRoute();
@@ -127,7 +136,8 @@ class AnnouncementRoute extends GoRouteData {
 }
 
 @TypedGoRoute<DailyBonusRoute>(
-  path: '/daily-bonus'
+  path: '/daily-bonus',
+  name: 'daily-bonus'
 )
 class DailyBonusRoute extends GoRouteData {
   const DailyBonusRoute();
@@ -137,7 +147,8 @@ class DailyBonusRoute extends GoRouteData {
 }
 
 @TypedGoRoute<ExchangeCodeRoute>(
-  path: '/exchange-code'
+  path: '/exchange-code',
+  name: 'exchange-code'
 )
 class ExchangeCodeRoute extends GoRouteData {
   const ExchangeCodeRoute();
@@ -147,7 +158,8 @@ class ExchangeCodeRoute extends GoRouteData {
 }
 
 @TypedGoRoute<CalendarRoute>(
-  path: '/calendar'
+  path: '/calendar',
+  name: 'calendar'
 )
 class CalendarRoute extends GoRouteData {
   const CalendarRoute();
@@ -157,7 +169,8 @@ class CalendarRoute extends GoRouteData {
 }
 
 @TypedGoRoute<MenuRoute>(
-  path: '/menu'
+  path: '/menu',
+  name: 'menu'
 )
 class MenuRoute extends GoRouteData {
   const MenuRoute();
@@ -167,7 +180,8 @@ class MenuRoute extends GoRouteData {
 }
 
 @TypedGoRoute<AboutAppRoute>(
-  path: '/about-app'
+  path: '/about-app',
+  name: 'about-app'
 )
 class AboutAppRoute extends GoRouteData {
   const AboutAppRoute();
@@ -177,7 +191,8 @@ class AboutAppRoute extends GoRouteData {
 }
 
 @TypedGoRoute<LicenseRoute>(
-  path: '/license'
+  path: '/license',
+  name: 'license'
 )
 class LicenseRoute extends GoRouteData {
   const LicenseRoute();
@@ -188,18 +203,23 @@ class LicenseRoute extends GoRouteData {
 
 @TypedGoRoute<SettingsRoute>(
   path: '/settings',
+  name: 'settings',
   routes: [
     TypedGoRoute<AccountSettingsRoute>(
-      path: 'account'
+      path: 'account',
+      name: 'account_settings'
     ),
     TypedGoRoute<NotificationSettingsRoute>(
-      path: 'notification'
+      path: 'notification',
+      name: 'notification_settings'
     ),
     TypedGoRoute<StorageSettingsRoute>(
-      path: 'storage'
+      path: 'storage',
+      name: 'storage_settings'
     ),
     TypedGoRoute<ThemeSettingsRoute>(
-      path: 'theme'
+      path: 'theme',
+      name: 'theme_settings'
     ),
   ]
 )

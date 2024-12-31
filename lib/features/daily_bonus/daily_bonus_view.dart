@@ -44,7 +44,7 @@ class DailyBonusView extends HookConsumerWidget {
                 children: [
                   ...extraAward.when(
                     data: (value) {
-                      if (int.parse(value.endTimestamp) * 1000 <= DateTime.now().millisecondsSinceEpoch) return [];
+                      if (int.parse(value.startTimestamp) * 1000 > DateTime.now().millisecondsSinceEpoch || int.parse(value.endTimestamp) * 1000 <= DateTime.now().millisecondsSinceEpoch) return [];
                       return [
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),

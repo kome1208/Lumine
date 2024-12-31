@@ -27,6 +27,7 @@ List<RouteBase> get $appRoutes => [
 
 RouteBase get $setupRoute => GoRouteData.$route(
       path: '/setup',
+      name: 'setup',
       factory: $SetupRouteExtension._fromState,
     );
 
@@ -49,6 +50,7 @@ extension $SetupRouteExtension on SetupRoute {
 
 RouteBase get $homeRoute => GoRouteData.$route(
       path: '/',
+      name: 'home',
       factory: $HomeRouteExtension._fromState,
     );
 
@@ -71,6 +73,7 @@ extension $HomeRouteExtension on HomeRoute {
 
 RouteBase get $accountRoute => GoRouteData.$route(
       path: '/account',
+      name: 'account',
       factory: $AccountRouteExtension._fromState,
     );
 
@@ -93,6 +96,7 @@ extension $AccountRouteExtension on AccountRoute {
 
 RouteBase get $characterListRoute => GoRouteData.$route(
       path: '/character-list',
+      name: 'character-list',
       factory: $CharacterListRouteExtension._fromState,
     );
 
@@ -116,6 +120,7 @@ extension $CharacterListRouteExtension on CharacterListRoute {
 
 RouteBase get $achievementRoute => GoRouteData.$route(
       path: '/achievement',
+      name: 'achievement',
       factory: $AchievementRouteExtension._fromState,
     );
 
@@ -139,6 +144,7 @@ extension $AchievementRouteExtension on AchievementRoute {
 
 RouteBase get $spiralAbyssRoute => GoRouteData.$route(
       path: '/spiral-abyss',
+      name: 'spiral-abyss',
       factory: $SpiralAbyssRouteExtension._fromState,
     );
 
@@ -162,6 +168,7 @@ extension $SpiralAbyssRouteExtension on SpiralAbyssRoute {
 
 RouteBase get $roleCombatRoute => GoRouteData.$route(
       path: '/role-combat',
+      name: 'role-combat',
       factory: $RoleCombatRouteExtension._fromState,
     );
 
@@ -185,6 +192,7 @@ extension $RoleCombatRouteExtension on RoleCombatRoute {
 
 RouteBase get $resourceDataRoute => GoRouteData.$route(
       path: '/resource-data',
+      name: 'resource-data',
       factory: $ResourceDataRouteExtension._fromState,
     );
 
@@ -208,6 +216,7 @@ extension $ResourceDataRouteExtension on ResourceDataRoute {
 
 RouteBase get $announcementRoute => GoRouteData.$route(
       path: '/announcement',
+      name: 'announcement',
       factory: $AnnouncementRouteExtension._fromState,
     );
 
@@ -231,6 +240,7 @@ extension $AnnouncementRouteExtension on AnnouncementRoute {
 
 RouteBase get $dailyBonusRoute => GoRouteData.$route(
       path: '/daily-bonus',
+      name: 'daily-bonus',
       factory: $DailyBonusRouteExtension._fromState,
     );
 
@@ -254,6 +264,7 @@ extension $DailyBonusRouteExtension on DailyBonusRoute {
 
 RouteBase get $exchangeCodeRoute => GoRouteData.$route(
       path: '/exchange-code',
+      name: 'exchange-code',
       factory: $ExchangeCodeRouteExtension._fromState,
     );
 
@@ -277,6 +288,7 @@ extension $ExchangeCodeRouteExtension on ExchangeCodeRoute {
 
 RouteBase get $calendarRoute => GoRouteData.$route(
       path: '/calendar',
+      name: 'calendar',
       factory: $CalendarRouteExtension._fromState,
     );
 
@@ -299,6 +311,7 @@ extension $CalendarRouteExtension on CalendarRoute {
 
 RouteBase get $menuRoute => GoRouteData.$route(
       path: '/menu',
+      name: 'menu',
       factory: $MenuRouteExtension._fromState,
     );
 
@@ -321,6 +334,7 @@ extension $MenuRouteExtension on MenuRoute {
 
 RouteBase get $aboutAppRoute => GoRouteData.$route(
       path: '/about-app',
+      name: 'about-app',
       factory: $AboutAppRouteExtension._fromState,
     );
 
@@ -343,6 +357,7 @@ extension $AboutAppRouteExtension on AboutAppRoute {
 
 RouteBase get $licenseRoute => GoRouteData.$route(
       path: '/license',
+      name: 'license',
       factory: $LicenseRouteExtension._fromState,
     );
 
@@ -365,22 +380,27 @@ extension $LicenseRouteExtension on LicenseRoute {
 
 RouteBase get $settingsRoute => GoRouteData.$route(
       path: '/settings',
+      name: 'settings',
       factory: $SettingsRouteExtension._fromState,
       routes: [
         GoRouteData.$route(
           path: 'account',
+          name: 'account_settings',
           factory: $AccountSettingsRouteExtension._fromState,
         ),
         GoRouteData.$route(
           path: 'notification',
+          name: 'notification_settings',
           factory: $NotificationSettingsRouteExtension._fromState,
         ),
         GoRouteData.$route(
           path: 'storage',
+          name: 'storage_settings',
           factory: $StorageSettingsRouteExtension._fromState,
         ),
         GoRouteData.$route(
           path: 'theme',
+          name: 'theme_settings',
           factory: $ThemeSettingsRouteExtension._fromState,
         ),
       ],

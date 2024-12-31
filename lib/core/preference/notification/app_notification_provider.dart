@@ -10,12 +10,13 @@ class NotificationSettings {
   final bool expeditionFinishRemindEnabled;
   final String expeditionFinishRemindMode;
   final bool homeCoinRemindEnabled;
-  final int homeCoinRemindTime;
   final bool dailyTaskRemindEnabled;
   final int dailyTaskRemindTime;
   final bool weeklyBossRemindEnabled;
-  final int weeklyBossRemindDate;
   final bool transformerRemindEnabled;
+  final bool checkDailySignStatusEnabled;
+  final int checkDailySignStatusTime;
+  final bool noticeWhenResinFull;
 
   NotificationSettings({
     required this.enabled,
@@ -24,12 +25,13 @@ class NotificationSettings {
     required this.expeditionFinishRemindEnabled,
     required this.expeditionFinishRemindMode,
     required this.homeCoinRemindEnabled,
-    required this.homeCoinRemindTime,
     required this.dailyTaskRemindEnabled,
     required this.dailyTaskRemindTime,
     required this.weeklyBossRemindEnabled,
-    required this.weeklyBossRemindDate,
     required this.transformerRemindEnabled,
+    required this.checkDailySignStatusEnabled,
+    required this.checkDailySignStatusTime,
+    required this.noticeWhenResinFull,
   });
 
   NotificationSettings copyWith({
@@ -45,6 +47,9 @@ class NotificationSettings {
     bool? weeklyBossRemindEnabled,
     int? weeklyBossRemindDate,
     bool? transformerRemindEnabled,
+    bool? checkDailySignStatusEnabled,
+    int? checkDailySignStatusTime,
+    bool? noticeWhenResinFull,
   }) {
     return NotificationSettings(
       enabled: enabled ?? this.enabled,
@@ -53,12 +58,13 @@ class NotificationSettings {
       expeditionFinishRemindEnabled: expeditionFinishRemindEnabled ?? this.expeditionFinishRemindEnabled,
       expeditionFinishRemindMode: expeditionFinishRemindMode ?? this.expeditionFinishRemindMode,
       homeCoinRemindEnabled: homeCoinRemindEnabled ?? this.homeCoinRemindEnabled,
-      homeCoinRemindTime: homeCoinRemindTime ?? this.homeCoinRemindTime,
       dailyTaskRemindEnabled: dailyTaskRemindEnabled ?? this.dailyTaskRemindEnabled,
       dailyTaskRemindTime: dailyTaskRemindTime ?? this.dailyTaskRemindTime,
       weeklyBossRemindEnabled: weeklyBossRemindEnabled ?? this.weeklyBossRemindEnabled,
-      weeklyBossRemindDate: weeklyBossRemindDate ?? this.weeklyBossRemindDate,
       transformerRemindEnabled: transformerRemindEnabled ?? this.transformerRemindEnabled,
+      checkDailySignStatusEnabled: checkDailySignStatusEnabled ?? this.checkDailySignStatusEnabled,
+      checkDailySignStatusTime: checkDailySignStatusTime ?? this.checkDailySignStatusTime,
+      noticeWhenResinFull: noticeWhenResinFull ?? this.noticeWhenResinFull,
     );
   }
 }
@@ -112,13 +118,6 @@ class AppNotificationNotifier extends _$AppNotificationNotifier {
     ref.read(sharedPreferencesProvider).setBool(_homeCoinRemindEnabledKey, value);
   }
 
-  void setHomeCoinRemindTime(int value) {
-    state = state.copyWith(
-      homeCoinRemindTime: value
-    );
-    ref.read(sharedPreferencesProvider).setInt(_homeCoinRemindTimeKey, value);
-  }
-
   void setDailyTaskRemindEnabled(bool value) {
     state = state.copyWith(
       dailyTaskRemindEnabled: value
@@ -140,18 +139,32 @@ class AppNotificationNotifier extends _$AppNotificationNotifier {
     ref.read(sharedPreferencesProvider).setBool(_weeklyBossRemindEnabledKey, value);
   }
 
-  void setWeeklyBossRemindDate(int value) {
-    state = state.copyWith(
-      weeklyBossRemindDate: value
-    );
-    ref.read(sharedPreferencesProvider).setInt(_weeklyBossRemindDateKey, value);
-  }
-
   void setTransformerRemindEnabled(bool value) {
     state = state.copyWith(
       transformerRemindEnabled: value
     );
     ref.read(sharedPreferencesProvider).setBool(_transformerRemindEnabledKey, value);
+  }
+
+  void setCheckDailySignStatusEnabled(bool value) {
+    state = state.copyWith(
+      checkDailySignStatusEnabled: value
+    );
+    ref.read(sharedPreferencesProvider).setBool(_checkDailySignStatusEnabledKey, value);
+  }
+
+  void setCheckDailySignStatusTime(int value) {
+    state = state.copyWith(
+      checkDailySignStatusTime: value
+    );
+    ref.read(sharedPreferencesProvider).setInt(_checkDailySignStatusTimeKey, value);
+  }
+
+  void setNoticeWhenResinFull(bool value) {
+    state = state.copyWith(
+      noticeWhenResinFull: value
+    );
+    ref.read(sharedPreferencesProvider).setBool(_noticeWhenResinFullKey, value);
   }
 
   NotificationSettings _load() {
@@ -164,12 +177,13 @@ class AppNotificationNotifier extends _$AppNotificationNotifier {
       expeditionFinishRemindEnabled: prefs.getBool(_expeditionFinishRemindEnabledKey) ?? false,
       expeditionFinishRemindMode: prefs.getString(_expeditionFinishRemindModeKey) ?? 'zenninndone',
       homeCoinRemindEnabled: prefs.getBool(_homeCoinRemindEnabledKey) ?? false,
-      homeCoinRemindTime: prefs.getInt(_homeCoinRemindTimeKey) ?? 0,
       dailyTaskRemindEnabled: prefs.getBool(_dailyTaskRemindEnabledKey) ?? false,
-      dailyTaskRemindTime: prefs.getInt(_dailyTaskRemindTimeKey) ?? 0,
+      dailyTaskRemindTime: prefs.getInt(_dailyTaskRemindTimeKey) ?? 18,
       weeklyBossRemindEnabled: prefs.getBool(_weeklyBossRemindEnabledKey) ?? false,
-      weeklyBossRemindDate: prefs.getInt(_weeklyBossRemindDateKey) ?? 0,
       transformerRemindEnabled: prefs.getBool(_transformerRemindEnabledKey) ?? false,
+      checkDailySignStatusEnabled: prefs.getBool(_checkDailySignStatusEnabledKey) ?? false,
+      checkDailySignStatusTime: prefs.getInt(_checkDailySignStatusTimeKey) ?? 18,
+      noticeWhenResinFull: prefs.getBool(_noticeWhenResinFullKey) ?? false,
     );
 
     return settings;
@@ -181,10 +195,11 @@ class AppNotificationNotifier extends _$AppNotificationNotifier {
   static const _expeditionFinishRemindEnabledKey = 'expedition_finish_remind_enabled';
   static const _expeditionFinishRemindModeKey = 'expedition_finish_remind_mode';
   static const _homeCoinRemindEnabledKey = 'home_coin_remind_enabled';
-  static const _homeCoinRemindTimeKey = 'home_coin_remind_time';
   static const _dailyTaskRemindEnabledKey = 'daily_task_remind_enabled';
   static const _dailyTaskRemindTimeKey = 'daily_task_remind_time';
   static const _weeklyBossRemindEnabledKey = 'weekly_boss_remind_enabled';
-  static const _weeklyBossRemindDateKey = 'weekly_boss_remind_date';
   static const _transformerRemindEnabledKey = 'transformer_remind_enabled';
+  static const _checkDailySignStatusEnabledKey = 'check_daily_sign_status_enabled';
+  static const _checkDailySignStatusTimeKey = 'check_daily_sign_status_time';
+  static const _noticeWhenResinFullKey = 'notice_when_resin_full';
 }

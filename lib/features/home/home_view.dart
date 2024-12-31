@@ -1,12 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:lumine/core/api/model/hoyolab_api_error.dart';
 import 'package:lumine/core/preference/notification/app_notification_provider.dart';
 import 'package:lumine/core/provider/hoyolab_api.dart';
-import 'package:lumine/features/daily_bonus/data/award_list_notifier_provider.dart';
-import 'package:lumine/features/daily_bonus/data/extra_award_provider.dart';
+import 'package:lumine/core/router/router.dart';
 import 'package:lumine/features/daily_bonus/data/sign_info_notifier_provider.dart';
 import 'package:lumine/features/home/data/daily_note.dart';
 import 'package:lumine/features/home/data/exchange_code.dart';
@@ -16,7 +16,6 @@ import 'package:lumine/features/exchange_code/data/saved_codes_provider.dart';
 import 'package:lumine/widgets/error_view.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:waterfall_flow/waterfall_flow.dart';
-import 'package:timezone/timezone.dart' as tz;
 
 class HomeView extends HookConsumerWidget  {
   const HomeView({super.key});
@@ -26,13 +25,52 @@ class HomeView extends HookConsumerWidget  {
     useAutomaticKeepAlive(wantKeepAlive: true);
     final dailyNote = ref.watch(dailyNoteNotifierProvider);
     final exchangeCode = ref.watch(exchangeCodeNotifierProvider);
-
-    final dailyAwardSignInfo = ref.watch(signInfoNotifierProvider);
-    final dailyAwardList = ref.watch(awardListNotifierProvider);
+    final savedCodes = ref.watch(savedCodesNotifierProvider);
 
     final api = ref.watch(hoYoLABAPINotifierProvider);
 
     final notificationSettings = ref.watch(appNotificationNotifierProvider);
+
+    ref.listen(
+      signInfoNotifierProvider,
+      (previous, next) {
+        if (next.isLoading || next.isRefreshing || next.isReloading) return;
+        if (next.valueOrNull?.isSign == false) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('受け取り可能なデイリーボーナスがあります'),
+            behavior: SnackBarBehavior.floating,
+            showCloseIcon: true,
+            action: SnackBarAction(
+              label: '開く',
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                DailyBonusRoute().push(context);
+              },
+            ),
+          ));
+        }
+      }
+    );
+
+    ref.listen(
+      exchangeCodeNotifierProvider,
+      (previous, next) {
+        if (next.isLoading || next.isRefreshing || next.isReloading) return;
+        if (next.hasError) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('交換コードの取得に失敗しました'),
+            behavior: SnackBarBehavior.floating,
+            showCloseIcon: true,
+            action: SnackBarAction(
+              label: '再試行',
+              onPressed: () {
+                ref.read(exchangeCodeNotifierProvider.notifier).refresh();
+              },
+            ),
+          ));
+        }
+      },
+    );
 
     final showResinRemainingTime = useState(false);
 
@@ -45,7 +83,7 @@ class HomeView extends HookConsumerWidget  {
 
       int todayWeekday = now.weekday;
 
-      int daysToNextMonday = (8 - todayWeekday) % 7;
+      int daysToNextMonday = 8 - todayWeekday;
       DateTime nextMonday = now.add(Duration(days: daysToNextMonday));
 
       DateTime nextMondayMorning = DateTime(
@@ -70,72 +108,11 @@ class HomeView extends HookConsumerWidget  {
         onRefresh: () async {
           ref.read(dailyNoteNotifierProvider.notifier).refresh();
           ref.read(exchangeCodeNotifierProvider.notifier).refresh();
-          ref.read(awardListNotifierProvider.notifier).refresh();
           ref.read(signInfoNotifierProvider.notifier).refresh();
         },
         child: dailyNote.when(
           data: (value) {
             final resinDiscountResetDays = calcResinDiscountResetDays();
-            if (notificationSettings.enabled) {
-              if (notificationSettings.resinRemindEnabled) {
-                final resinReminderOffset = notificationSettings.resinRemindOffset.truncate();
-                final time = (int.parse(value.resinRecoveryTime)) - (96000 - (60 * 8 * resinReminderOffset)) ;
-                setReminder(
-                  '天然樹脂回復通知',
-                  '天然樹脂が$resinReminderOffsetに達しました',
-                  time,
-                  0
-                );
-              }
-
-              if (notificationSettings.expeditionFinishRemindEnabled && value.expeditions.isNotEmpty) {
-                switch (notificationSettings.expeditionFinishRemindMode) {
-                  case 'zenninndone':
-                    setReminder(
-                      '探索派遣完了通知',
-                      '全員探索が完了しました',
-                      int.parse(value.expeditions.reduce((a, b) => int.parse(a.remainedTime) > int.parse(b.remainedTime) ? a : b).remainedTime),
-                      1
-                    );
-                    break;
-                  case 'hitorizutsu':
-                    value.expeditions.forEachIndexed((i, expedition) {
-                      setReminder(
-                        '探索派遣完了通知',
-                        '一件の探索派遣が完了しました',
-                        int.parse(expedition.remainedTime),
-                        i + 1,
-                      );
-                    });
-                    break;
-                }
-              }
-
-              if (notificationSettings.transformerRemindEnabled && !value.transformer.recoveryTime['reached']) {
-                final recoveryTime = value.transformer.recoveryTime;
-
-                setReminder(
-                  '参量物質変化器の準備完了',
-                  '参量物質変化器が再び使用可能になりました',
-                  Duration(
-                    days: recoveryTime['Day'],
-                    hours: recoveryTime['Hour'],
-                    minutes: recoveryTime['Minute'],
-                    seconds: recoveryTime['Second'],
-                  ).inSeconds,
-                  6
-                );
-              }
-
-              if (notificationSettings.homeCoinRemindEnabled && value.homeCoinRecoveryTime != '0') {
-                setReminder(
-                  '洞天宝銭が上限に達しました',
-                  '現在の洞天宝銭は${value.maxHomeCoin}です',
-                  int.parse(value.homeCoinRecoveryTime),
-                  7
-                );
-              }
-            }
 
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -324,7 +301,7 @@ class HomeView extends HookConsumerWidget  {
                             width: 32,
                             height: 32,
                           ),
-                          title: const Text('週ボス', style: TextStyle(fontSize: 18)),
+                          title: const Text('週ボス樹脂半減回数', style: TextStyle(fontSize: 18)),
                           subtitle: Text(
                             'リセットまで: ${resinDiscountResetDays.inDays > 0 ? '${resinDiscountResetDays.inDays}日' : ''}${resinDiscountResetDays.inHours % 24}時間',
                             style: const TextStyle(fontSize: 16)
@@ -361,14 +338,14 @@ class HomeView extends HookConsumerWidget  {
                             width: 32,
                             height: 32,
                           ),
-                          title: const Text('変化器', style: TextStyle(fontSize: 18)),
+                          title: const Text('参量物質変化器', style: TextStyle(fontSize: 18)),
                           subtitle: Text(
                             value.transformer.recoveryTime['reached'] ? '準備完了' : '準備中',
                             style: const TextStyle(fontSize: 16),
                             overflow: TextOverflow.ellipsis,
                           ),
                           trailing: value.transformer.recoveryTime['reached'] ? null : Text(
-                            '${value.transformer.recoveryTime['Day']}日${value.transformer.recoveryTime['Hour']}時間${value.transformer.recoveryTime['Minute']}分',
+                            '${value.transformer.recoveryTime['Day'] > 0 ? '${value.transformer.recoveryTime["Day"]}日' : ''}${value.transformer.recoveryTime['Hour'] > 0 ? '${value.transformer.recoveryTime["Hour"]}時間' : ''}${value.transformer.recoveryTime['Minute'] > 0 ? '${value.transformer.recoveryTime["Minute"]}分' : ''}${value.transformer.recoveryTime['Second'] > 0 ? '1分未満' : ''}',
                             style: TextStyle(
                               fontSize: 16,
                               overflow: TextOverflow.ellipsis,
@@ -501,109 +478,125 @@ class HomeView extends HookConsumerWidget  {
                       ),
                     )
                   ],
-                  if (dailyAwardList.value != null && dailyAwardSignInfo.value != null && dailyAwardSignInfo.value!.isSign == false) ...[
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('デイリーボーナス'),
-                    ),
-                    Card.filled(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      color: cardColor,
-                      child: ListTile(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        leading: SizedBox(
-                          width: 56,
-                          height: 56,
-                          child: CachedNetworkImage(
-                            imageUrl: dailyAwardList.value!.awards[dailyAwardSignInfo.value!.totalSignDay].icon
-                          ),
-                        ),
-                        title: Text(
-                          dailyAwardList.value!.awards[dailyAwardSignInfo.value!.totalSignDay].name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        subtitle: Text(
-                          'x${dailyAwardList.value!.awards[dailyAwardSignInfo.value!.totalSignDay].cnt}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                          ),
-                        ),
-                        trailing: TextButton(
-                          style: TextButton.styleFrom(
-                            foregroundColor: theme.colorScheme.onPrimary,
-                            backgroundColor: theme.colorScheme.primary,
-                          ),
-                          child: const Text('受け取る'),
-                          onPressed: () {
-                            final award = dailyAwardList.value!.awards[dailyAwardSignInfo.value!.totalSignDay];
-                            ref.watch(hoYoLABAPINotifierProvider).dailyCheckIn().then((message) {
-                              if (!context.mounted) return;
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text('メッセージ'),
-                                    content: Text(
-                                      message == 'OK' ? '${award.name} x${award.cnt}を受け取りました' : message
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: const Text('閉じる')
-                                      )
-                                    ],
-                                  );
-                                },
-                              );
-
-                              ref.read(awardListNotifierProvider.notifier).refresh();
-                              ref.read(signInfoNotifierProvider.notifier).refresh();
-                              ref.read(extraAwardNotifierProvider.notifier).refresh();
-                            });
-                          },
-                        ),
-                      )
-                    )
-                  ],
-                  if (exchangeCode.valueOrNull != null) ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('交換コード'),
-                          const SizedBox(width: 4),
-                          Text(exchangeCode.value!.bonuses.isEmpty ? '(まもなく公開...)' : '(${DateFormatter.formatDate(exchangeCode.value!.offlineAt * 1000, 'M/d H:mm')}まで)'),
-                          const Spacer(),
-                          (exchangeCode.isLoading || exchangeCode.isRefreshing || exchangeCode.isReloading) ?
-                          const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ) :
-                          GestureDetector(
-                            onTap: () {
-                              ref.read(exchangeCodeNotifierProvider.notifier).refresh();
-                            },
-                            child: const Icon(Icons.refresh, size: 20)
-                          )
-                        ],
-                      )
-                    ),
-                    Card.filled(
-                      color: cardColor,
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Column(
+                  exchangeCode.when(
+                    skipLoadingOnReload: true,
+                    skipError: true,
+                    data: (exchangeCodeData) {
+                      if (exchangeCodeData != null) {
+                        return Column(
                           children: [
-                            if (exchangeCode.value!.bonuses.isEmpty) WaterfallFlow.builder(
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 16),
+                              child: Row(
+                                children: [
+                                  Text('交換コード'),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    exchangeCodeData.bonuses.isEmpty ?
+                                    '(まもなく公開...)' :
+                                    '(${DateFormatter.formatDate(exchangeCodeData.offlineAt * 1000, 'M/d H:mm')}まで)'
+                                  ),
+                                  const Spacer(),
+                                  (exchangeCode.isLoading || exchangeCode.isRefreshing || exchangeCode.isReloading) ?
+                                  const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ) :
+                                  GestureDetector(
+                                    onTap: () {
+                                      ref.read(exchangeCodeNotifierProvider.notifier).refresh();
+                                    },
+                                    child: const Icon(Icons.refresh, size: 20)
+                                  )
+                                ]
+                              ),
+                            ),
+                            if (exchangeCodeData.bonuses.isNotEmpty) Card.filled(
+                              color: cardColor,
+                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              child: Column(
+                                children: [
+                                  if (exchangeCodeData.bonuses.where((item) => (item.codeStatus == 'ON' && !savedCodes.any((codeInfo) => jsonDecode(codeInfo)['code'] == item.exchangeCode))).isEmpty)
+                                  ListTile(
+                                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    title: const Text('全て交換済みです'),
+                                    trailing: TextButton(
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: theme.colorScheme.onPrimary,
+                                        backgroundColor: theme.colorScheme.primary
+                                      ),
+                                      child: const Text('表示'),
+                                      onPressed: () {
+                                        ExchangeCodeRoute().push(context);
+                                      },
+                                    ),
+                                  )
+                                  else ...exchangeCodeData.bonuses.where((item) => (item.codeStatus == 'ON' && !savedCodes.any((codeInfo) => jsonDecode(codeInfo)['code'] == item.exchangeCode))).map((bonus) {
+                                    final exchangeCode = bonus.exchangeCode;
+                                    final iconBonuses = bonus.iconBonuses;
+
+                                    return ListTile(
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                                      title: Text(
+                                        exchangeCode,
+                                        style: const TextStyle(fontSize: 18),
+                                      ),
+                                      subtitle: Row(
+                                        children: iconBonuses.map((iconBonus) {
+                                          return Row(
+                                            children: [
+                                              CachedNetworkImage(
+                                                imageUrl: iconBonus.iconUrl,
+                                                width: 24,
+                                                height: 24
+                                              ),
+                                              Text(
+                                                'x${iconBonus.bonusNum.toString()}',
+                                                style: const TextStyle(
+                                                  fontSize: 16
+                                                ),
+                                              ),
+                                              const SizedBox(width: 6)
+                                            ],
+                                          );
+                                        }).toList(),
+                                      ),
+                                      trailing: TextButton(
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: theme.colorScheme.onPrimary,
+                                          backgroundColor: theme.colorScheme.primary
+                                        ),
+                                        child: const Text('交換'),
+                                        onPressed: () {
+                                          ref.read(savedCodesNotifierProvider.notifier).apply(exchangeCode).then((message) {
+                                            if (!context.mounted) return;
+                                            showDialog(
+                                              context: context,
+                                              barrierDismissible: false,
+                                              builder: (context) {
+                                                return AlertDialog(
+                                                  title: const Text('交換結果'),
+                                                  content: Text(message),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      child: const Text('閉じる')
+                                                    )
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          });
+                                        },
+                                      ),
+                                    );
+                                  }),
+                                ]
+                              )
+                            ) else WaterfallFlow.builder(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               gridDelegate: const SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
@@ -611,9 +604,9 @@ class HomeView extends HookConsumerWidget  {
                                 crossAxisSpacing: 8,
                                 mainAxisSpacing: 8,
                               ),
-                              itemCount: exchangeCode.value!.bonusesSummary.iconBonuses.length,
+                              itemCount: exchangeCodeData.bonusesSummary.iconBonuses.length,
                               itemBuilder: (context, index) {
-                                final iconBonus = exchangeCode.value!.bonusesSummary.iconBonuses[index];
+                                final iconBonus = exchangeCodeData.bonusesSummary.iconBonuses[index];
 
                                 return GridTile(
                                   child: Column(
@@ -630,69 +623,15 @@ class HomeView extends HookConsumerWidget  {
                                 );
                               },
                             ),
-                            ...exchangeCode.value!.bonuses.where((item) => item.codeStatus == 'ON').map((bonus) {
-                              final exchangeCode = bonus.exchangeCode;
-                              final iconBonuses = bonus.iconBonuses;
-
-                              return ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                title: Text(
-                                  exchangeCode,
-                                  style: const TextStyle(fontSize: 18),
-                                ),
-                                subtitle: Row(
-                                  children: iconBonuses.map((iconBonus) {
-                                    return Row(
-                                      children: [
-                                        CachedNetworkImage(
-                                          imageUrl: iconBonus.iconUrl,
-                                          width: 24,
-                                          height: 24
-                                        ),
-                                        Text(
-                                          'x${iconBonus.bonusNum.toString()}',
-                                          style: const TextStyle(
-                                            fontSize: 16
-                                          ),
-                                        ),
-                                        const SizedBox(width: 6)
-                                      ],
-                                    );
-                                  }).toList(),
-                                ),
-                                trailing: ElevatedButton(
-                                  child: const Text('交換'),
-                                  onPressed: () {
-                                    ref.read(savedCodesNotifierProvider.notifier).apply(exchangeCode).then((message) {
-                                      if (!context.mounted) return;
-                                      showDialog(
-                                        context: context,
-                                        barrierDismissible: false,
-                                        builder: (context) {
-                                          return AlertDialog(
-                                            title: const Text('交換結果'),
-                                            content: Text(message),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                },
-                                                child: const Text('閉じる')
-                                              )
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    });
-                                  },
-                                ),
-                              );
-                            })
                           ]
-                        )
-                      )
-                    ),
-                  ]
+                        );
+                      }
+
+                      return SizedBox();
+                    },
+                    error: (e, s) => SizedBox(),
+                    loading: () => const SizedBox(),
+                  ),
                 ],
               )
             );
@@ -710,8 +649,6 @@ class HomeView extends HookConsumerWidget  {
                     onPressed: () {
                       ref.read(dailyNoteNotifierProvider.notifier).refresh();
                       ref.read(exchangeCodeNotifierProvider.notifier).refresh();
-                      ref.read(awardListNotifierProvider.notifier).refresh();
-                      ref.read(signInfoNotifierProvider.notifier).refresh();
                     },
                     child: const Text('再試行')
                   ),
@@ -732,6 +669,40 @@ class HomeView extends HookConsumerWidget  {
           }
         )
       ),
+      floatingActionButton: (!notificationSettings.enabled && Platform.isAndroid) ?
+      FloatingActionButton(
+        child: Icon(Icons.notifications_outlined),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text('通知が利用可能'),
+                content: Text('アプリの通知を有効にすると、天然樹脂回復や洞天宝銭、参量物質変化器の利用可能になった時に通知を受け取ることができます'),
+                actions: [
+                  TextButton(
+                    child: Text('閉じる'),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    }
+                  ),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      backgroundColor: theme.colorScheme.primary
+                    ),
+                    child: Text('設定へ'),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      NotificationSettingsRoute().push(context);
+                    }
+                  )
+                ]
+              );
+            }
+          );
+        }
+      ) : null,
     );
   }
 }
@@ -748,33 +719,4 @@ String formatRemainingTime(int timestamp) {
     final remainingMinutes = difference.inMinutes % 60;
     return '残り:${difference.inHours}時間$remainingMinutes分';
   }
-}
-
-Future<void> setReminder(String title, String message, int time, int id) async {
-  if (time <= 0) return;
-  final flnp = FlutterLocalNotificationsPlugin();
-
-  const AndroidNotificationDetails androidPlatformChannelSpecifics =
-  AndroidNotificationDetails(
-    'com.kome1.lumine.notification',
-    'reminder',
-    importance: Importance.defaultImportance,
-    priority: Priority.defaultPriority,
-    showWhen: true,
-  );
-
-  const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-
-  final scheduledTime = tz.TZDateTime.now(tz.UTC).add(Duration(seconds: time));
-  // final scheduledTime = tz.TZDateTime.now(tz.UTC).add(const Duration(seconds: 5));
-
-  await flnp.zonedSchedule(
-    id,
-    title,
-    message,
-    scheduledTime,
-    platformChannelSpecifics,
-    uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-  );
 }
