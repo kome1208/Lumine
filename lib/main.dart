@@ -1,10 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-// import 'package:home_widget/home_widget.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/app.dart';
 import 'package:lumine/core/preference/notification/app_notification_provider.dart';
@@ -12,6 +13,7 @@ import 'package:lumine/core/provider/package_info.dart';
 import 'package:lumine/core/provider/shared_preferences.dart';
 import 'package:lumine/features/daily_bonus/data/sign_info_notifier_provider.dart';
 import 'package:lumine/features/home/data/daily_note.dart';
+import 'package:lumine/utils/date_formatter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -21,6 +23,50 @@ import 'package:workmanager/workmanager.dart';
 const checkDailySignStatusTask = 'checkDailySignStatus';
 const weeklyBossRemindTask = 'weeklyBossRemind';
 const dailyNoteTask = 'dailyNote';
+
+@pragma("vm:entry-point")
+Future<void> backgroundCallback(Uri? data) async {
+  final container = ProviderContainer(
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(await SharedPreferences.getInstance()),
+    ]
+  );
+
+  if (data?.host == 'reload') {
+    try {
+      final dailyNote = await container.read(dailyNoteNotifierProvider.future);
+
+      Future.wait([
+        HomeWidget.saveWidgetData('daily_note_data', jsonEncode(dailyNote.toJson())),
+        HomeWidget.saveWidgetData('last_update', DateFormatter.formatDate(DateTime.now().millisecondsSinceEpoch, 'M/d H:mm'))
+      ]).then((value) {
+        HomeWidget.updateWidget(
+          qualifiedAndroidName: 'com.kome1.lumine.glance.HomeWidgetReceiver',
+        );
+      });
+    } catch (err) {
+      print('Error reloading widget: $err');
+    }
+  }
+
+  container.dispose();
+}
+
+@pragma('vm:entry-point')
+Future<void> callbackDispatcher() async {
+  Workmanager().executeTask((task, inputData) async {
+    switch (task) {
+      case checkDailySignStatusTask:
+        await checkDailySignStatus();
+        break;
+      case dailyNoteTask:
+        await getDailyNote();
+        break;
+    }
+
+    return Future.value(true);
+  });
+}
 
 Future<void> main() async {
 
@@ -39,6 +85,8 @@ Future<void> main() async {
 
   Workmanager().initialize(callbackDispatcher, isInDebugMode: kDebugMode);
 
+  HomeWidget.registerInteractivityCallback(backgroundCallback);
+
   Future.wait([
     registerCheckDailySignStatusTask(),
     // registerWeeklyBossRemind(),
@@ -55,23 +103,6 @@ Future<void> main() async {
     )
   );
 }
-
-@pragma('vm:entry-point')
-void callbackDispatcher() {
-  Workmanager().executeTask((task, inputData) async {
-    switch (task) {
-      case checkDailySignStatusTask:
-        await checkDailySignStatus();
-        break;
-      case dailyNoteTask:
-        await getDailyNote();
-        break;
-    }
-
-    return Future.value(true);
-  });
-}
-
 
 Future<void> registerCheckDailySignStatusTask() async {
   final container = ProviderContainer(
@@ -141,8 +172,6 @@ Future<void> registerWeeklyBossRemind() async {
     ? scheduleTime.add(Duration(days: 1))
     : scheduleTime;
 
-  print(adjustedTime.toUtc());
-
   await flnp.zonedSchedule(
     21,
     '週ボス樹脂半減回数リセット通知',
@@ -163,18 +192,16 @@ Future<void> registerDailyNote() async {
     ]
   );
 
-  final prefs = container.read(appNotificationNotifierProvider);
+  final prefs = container.read(sharedPreferencesProvider);
 
-  if (!prefs.enabled) return;
+  if (prefs.getBool('is_initialized') != true) return;
 
-  if (prefs.resinRemindEnabled || prefs.weeklyBossRemindEnabled || prefs.expeditionFinishRemindEnabled || prefs.transformerRemindEnabled || prefs.homeCoinRemindEnabled) {
-    Workmanager().registerPeriodicTask(
-      dailyNoteTask,
-      dailyNoteTask,
-      initialDelay: Duration(minutes: 1),
-      frequency: Duration(hours: 1),
-    );
-  }
+  Workmanager().registerPeriodicTask(
+    dailyNoteTask,
+    dailyNoteTask,
+    initialDelay: Duration(minutes: 1),
+    frequency: Duration(hours: 1),
+  );
 
   container.dispose();
 }
@@ -188,121 +215,119 @@ Future<void> getDailyNote () async {
 
   final prefs = container.read(appNotificationNotifierProvider);
 
-  if (!prefs.enabled) return;
+  final dailyNote = await container.read(dailyNoteNotifierProvider.future);
 
-  if (
-    prefs.resinRemindEnabled ||
-    prefs.weeklyBossRemindEnabled ||
-    prefs.expeditionFinishRemindEnabled ||
-    prefs.transformerRemindEnabled ||
-    prefs.homeCoinRemindEnabled ||
-    prefs.dailyTaskRemindEnabled
-  ) {
-    final dailyNote = await container.read(dailyNoteNotifierProvider.future);
-
-    final flnp = FlutterLocalNotificationsPlugin();
-
-    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'com.kome1.lumine.notification',
-      'daily_note',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-      showWhen: true,
+  Future.wait([
+    HomeWidget.saveWidgetData('daily_note_data', jsonEncode(dailyNote.toJson())),
+    HomeWidget.saveWidgetData('last_update', DateFormatter.formatDate(DateTime.now().millisecondsSinceEpoch, 'M/d H:mm'))
+  ]).then((value) {
+    HomeWidget.updateWidget(
+      qualifiedAndroidName: 'com.kome1.lumine.glance.HomeWidgetReceiver',
     );
+  });
 
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-    
-    if (prefs.resinRemindEnabled && dailyNote.resinRecoveryTime != '0') {
-      final resinReminderOffset = prefs.resinRemindOffset.truncate();
-      int time = int.parse(dailyNote.resinRecoveryTime) - (96000 - (60 * 8 * resinReminderOffset));
-      String message = '天然樹脂が$resinReminderOffsetに達しました';
+  final flnp = FlutterLocalNotificationsPlugin();
 
-      if (dailyNote.currentResin > resinReminderOffset && prefs.noticeWhenResinFull) {
-        time = int.parse(dailyNote.resinRecoveryTime);
-        message = '天然樹脂が上限に達しました';
-      }
+  const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    'com.kome1.lumine.notification',
+    'daily_note',
+    importance: Importance.defaultImportance,
+    priority: Priority.defaultPriority,
+    showWhen: true,
+  );
 
-      final scheduledTime = tz.TZDateTime.now(tz.UTC).add(Duration(seconds: time));
+  const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+  
+  if (prefs.resinRemindEnabled && dailyNote.resinRecoveryTime != '0') {
+    final resinReminderOffset = prefs.resinRemindOffset.truncate();
+    int time = int.parse(dailyNote.resinRecoveryTime) - (96000 - (60 * 8 * resinReminderOffset));
+    String message = '天然樹脂が$resinReminderOffsetに達しました';
 
-      await flnp.zonedSchedule(
-        0,
-        '天然樹脂回復通知',
-        message,
-        scheduledTime,
-        platformChannelSpecifics,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      );
+    if (dailyNote.currentResin > resinReminderOffset && prefs.noticeWhenResinFull) {
+      time = int.parse(dailyNote.resinRecoveryTime);
+      message = '天然樹脂が上限に達しました';
     }
 
-    if (prefs.expeditionFinishRemindEnabled && dailyNote.expeditions.any((expedition) => expedition.remainedTime != '0')) {
-      switch (prefs.expeditionFinishRemindMode) {
-        case 'zenninndone':
-          await flnp.zonedSchedule(
-            100,
+    final scheduledTime = tz.TZDateTime.now(tz.UTC).add(Duration(seconds: time));
+
+    await flnp.zonedSchedule(
+      0,
+      '天然樹脂回復通知',
+      message,
+      scheduledTime,
+      platformChannelSpecifics,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
+
+  if (prefs.expeditionFinishRemindEnabled && dailyNote.expeditions.any((expedition) => expedition.remainedTime != '0')) {
+    switch (prefs.expeditionFinishRemindMode) {
+      case 'zenninndone':
+        await flnp.zonedSchedule(
+          100,
+          '探索派遣完了通知',
+          '全員探索が完了しました',
+          tz.TZDateTime.now(tz.UTC).add(Duration(seconds: int.parse(dailyNote.expeditions.reduce((a, b) => int.parse(a.remainedTime) > int.parse(b.remainedTime) ? a : b).remainedTime))),
+          platformChannelSpecifics,
+          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        );
+        break;
+      case 'hitorizutsu':
+        dailyNote.expeditions.forEachIndexed((i, expedition) {
+          flnp.zonedSchedule(
+            i + 100,
             '探索派遣完了通知',
-            '全員探索が完了しました',
-            tz.TZDateTime.now(tz.UTC).add(Duration(seconds: int.parse(dailyNote.expeditions.reduce((a, b) => int.parse(a.remainedTime) > int.parse(b.remainedTime) ? a : b).remainedTime))),
+            '一件の探索派遣が完了しました',
+            tz.TZDateTime.now(tz.UTC).add(Duration(seconds: int.parse(expedition.remainedTime))),
             platformChannelSpecifics,
             uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
             androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
           );
-          break;
-        case 'hitorizutsu':
-          dailyNote.expeditions.forEachIndexed((i, expedition) {
-            flnp.zonedSchedule(
-              i + 100,
-              '探索派遣完了通知',
-              '一件の探索派遣が完了しました',
-              tz.TZDateTime.now(tz.UTC).add(Duration(seconds: int.parse(expedition.remainedTime))),
-              platformChannelSpecifics,
-              uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-              androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-            );
-          });
-          break;
-      }
+        });
+        break;
     }
+  }
 
-    if (prefs.transformerRemindEnabled && !dailyNote.transformer.recoveryTime['reached']) {
-      final recoveryTime = dailyNote.transformer.recoveryTime;
+  if (prefs.transformerRemindEnabled && !dailyNote.transformer.recoveryTime['reached']) {
+    final recoveryTime = dailyNote.transformer.recoveryTime;
 
-      await flnp.zonedSchedule(
-        6,
-        '参量物質変化器の準備完了',
-        '参量物質変化器が再び使用可能になりました',
-        tz.TZDateTime.now(tz.UTC).add(Duration(
-          days: recoveryTime['Day'],
-          hours: recoveryTime['Hour'],
-          minutes: recoveryTime['Minute'],
-          seconds: recoveryTime['Second'],
-        )),
-        platformChannelSpecifics,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      );
-    }
+    await flnp.zonedSchedule(
+      6,
+      '参量物質変化器の準備完了',
+      '参量物質変化器が再び使用可能になりました',
+      tz.TZDateTime.now(tz.UTC).add(Duration(
+        days: recoveryTime['Day'],
+        hours: recoveryTime['Hour'],
+        minutes: recoveryTime['Minute'],
+        seconds: recoveryTime['Second'],
+      )),
+      platformChannelSpecifics,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
 
-    if (prefs.homeCoinRemindEnabled && dailyNote.homeCoinRecoveryTime != '0') {
-      await flnp.zonedSchedule(
-        7,
-        '洞天宝銭上限通知',
-        '洞天宝銭が上限に達しました',
-        tz.TZDateTime.now(tz.UTC).add(Duration(seconds: int.parse(dailyNote.homeCoinRecoveryTime))),
-        platformChannelSpecifics,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      );
-    }
+  if (prefs.homeCoinRemindEnabled && dailyNote.homeCoinRecoveryTime != '0') {
+    await flnp.zonedSchedule(
+      7,
+      '洞天宝銭上限通知',
+      '洞天宝銭が上限に達しました',
+      tz.TZDateTime.now(tz.UTC).add(Duration(seconds: int.parse(dailyNote.homeCoinRecoveryTime))),
+      platformChannelSpecifics,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    );
+  }
 
-    if (prefs.dailyTaskRemindEnabled && !dailyNote.isExtraTaskRewardReceived && prefs.dailyTaskRemindTime == DateTime.now().hour) {
-      await flnp.show(
-        8,
-        'デイリー依頼通知',
-        '本日のデイリー依頼報酬はまだ受け取られていません。任務を完了して受け取りましょう！',
-        platformChannelSpecifics,
-      );
-    }
+  if (prefs.dailyTaskRemindEnabled && !dailyNote.isExtraTaskRewardReceived && prefs.dailyTaskRemindTime == DateTime.now().hour) {
+    await flnp.show(
+      8,
+      'デイリー依頼通知',
+      '本日のデイリー依頼報酬はまだ受け取られていません。任務を完了して受け取りましょう！',
+      platformChannelSpecifics,
+    );
   }
 
   container.dispose();

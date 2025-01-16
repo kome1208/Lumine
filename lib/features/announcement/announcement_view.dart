@@ -56,165 +56,237 @@ class _EventListView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive(wantKeepAlive: true);
+    
+    final controller = useScrollController();
+    
     final eventList = ref.watch(eventListNotifierProvider);
     final eventListProvider = ref.read(eventListNotifierProvider.notifier);
 
     final cardColor = ElevationOverlay.applySurfaceTint(Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.primary, 3);
 
+    useEffect(() {
+      controller.addListener(() {
+        if (controller.position.pixels >= controller.position.maxScrollExtent - 100) {
+          eventListProvider.fetchMore();
+        }
+      });
+      return null;
+    }, [controller]);
+
     return eventList.when(
       skipLoadingOnReload: true,
+      skipError: true,
       data: (eventListData) {
-        return NotificationListener<ScrollNotification>(
-          onNotification: (ScrollNotification scrollInfo) {
-            if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-              eventListProvider.fetchMore();
-            }
-            return false;
+        return RefreshIndicator(
+          onRefresh: () async {
+            await eventListProvider.refresh();
           },
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await eventListProvider.refresh();
-            },
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  ...eventListData.list.map((event) {
-                    Color statusColor = Colors.black;
-                    String statusMessage = 'データなし';
-
-                    if (event.status == 3) {
-                      statusColor = Colors.lightGreen;
-                      statusMessage = '${DateFormatter.formatDate(int.parse(event.end) * 1000, 'M/d')}に終了';
-                    } else if (event.status == 4) {
-                      statusColor = Colors.grey;
-                      statusMessage = '終了';
-                    }
-
-                    if (event.statusIng == 5) {
-                      statusColor = Colors.red;
-                      statusMessage = '審査中';
-                    }
-
-                    return Card.filled(
-                      color: cardColor,
-                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                      clipBehavior: Clip.hardEdge,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+          child: ListView.builder(
+            controller: controller,
+            itemCount: eventListData.list.length + 1,
+            itemBuilder: (context, index) {
+              if (index == eventListData.list.length) {
+                if (eventList.isLoading) {
+                  return Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: const Center(
+                      child: CircularProgressIndicator()
+                    )
+                  );
+                }
+                if (eventList.hasError) {
+                  return Column(
+                    children: [
+                      Text(
+                        '読込中にエラーが発生しました',
+                        style: TextStyle(
+                          fontSize: 16
+                        )
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          GestureDetector(
-                            child: AspectRatio(
-                              aspectRatio: 16 / 9,
-                              child: Stack(
-                                children: [
-                                  Hero(
-                                    tag: event.id,
-                                    child: CachedNetworkImage(
-                                      imageUrl: event.bannerUrl,
-                                      fit: BoxFit.cover,
-                                    )
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                                    decoration: BoxDecoration(
-                                      color: statusColor.withOpacity(0.8),
-                                      borderRadius: const BorderRadius.only(bottomRight: Radius.circular(12))
-                                    ),
-                                    child: Text(
-                                      statusMessage,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                      )
-                                    ),
-                                  )
-                                ]
-                              )
-                            ),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => Scaffold(
-                                    appBar: AppBar(
-                                      actions: [
-                                        IconButton(
-                                          icon: const Icon(Icons.more_horiz),
-                                          onPressed: () {
-                                            showModalBottomSheet(
-                                              context: context,
-                                              showDragHandle: true,
-                                              enableDrag: true,
-                                              builder: (context) {
-                                                return _ImageActionSheet(imageUrl: event.bannerUrl);
-                                              },
-                                            );
-                                          }
-                                        )
-                                      ],
-                                    ),
-                                    body: Container(
-                                      constraints: const BoxConstraints.expand(),
-                                      child: InteractiveViewer(
-                                        child: Hero(
-                                          tag: event.id,
-                                          child: CachedNetworkImage(
-                                            imageUrl: event.bannerUrl,
-                                            fit: BoxFit.contain
-                                          )
-                                        ),
-                                      )
-                                    )
-                                  )
-                                )
-                              );
-                            },
-                            onLongPress: () {
-                              showModalBottomSheet(
+                          ElevatedButton(
+                            onPressed: () {
+                              showDialog(
                                 context: context,
-                                showDragHandle: true,
-                                enableDrag: true,
                                 builder: (context) {
-                                  return _ImageActionSheet(imageUrl: event.bannerUrl);
+                                  return AlertDialog(
+                                    title: Text('エラー'),
+                                    content: SingleChildScrollView(
+                                      child: Text(eventList.error.toString())
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: Text('コピー'),
+                                        onPressed: () => Clipboard.setData(ClipboardData(text: eventList.error.toString())),
+                                      ),
+                                      TextButton(
+                                        child: Text('閉じる'),
+                                        onPressed: () => Navigator.pop(context),
+                                      )
+                                    ],
+                                  );
                                 },
                               );
                             },
+                            child: Text('エラー詳細')
                           ),
-                          ListTile(
-                            title: Text(
-                              event.name,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis
-                            ),
-                            subtitle: Text(
-                              event.desc,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis
-                            )
-                          ),
-                          TextButton(
+                          ElevatedButton(
                             onPressed: () {
-                              launchUrl(
-                                Uri.parse('https://hoyolab.com')
-                                .replace(
-                                  path: event.webPath
-                                )
-                              );
+                              eventListProvider.fetchMore();
                             },
-                            child: const Text('詳細を見る')
+                            child: Text('再試行')
                           )
-                        ],
-                      ),
-                    );
-                  }),
-                  Padding(
-                    padding: const EdgeInsets.all(8),
+                        ]
+                      )
+                    ]
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Center(
                     child: eventListData.isLast ?
                     const Text('リストの最後') :
-                    const CircularProgressIndicator()
+                    ElevatedButton(
+                      onPressed: () {
+                        eventListProvider.fetchMore();
+                      },
+                      child: Text('さらに読み込む')
+                    )
                   )
-                ],
-              ),
-            ),
-          )
+                );
+              }
+
+              final event = eventListData.list[index];
+
+              Color statusColor = Colors.black;
+              String statusMessage = 'データなし';
+
+              if (event.status == 3) {
+                statusColor = Colors.lightGreen;
+                statusMessage = '${DateFormatter.formatDate(int.parse(event.end) * 1000, 'M/d')}に終了';
+              } else if (event.status == 4) {
+                statusColor = Colors.grey;
+                statusMessage = '終了';
+              }
+
+              if (event.statusIng == 5) {
+                statusColor = Colors.red;
+                statusMessage = '審査中';
+              }
+
+              return Card.filled(
+                color: cardColor,
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                clipBehavior: Clip.hardEdge,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: Stack(
+                          children: [
+                            Hero(
+                              tag: event.id,
+                              child: CachedNetworkImage(
+                                imageUrl: event.bannerUrl,
+                                fit: BoxFit.cover,
+                              )
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: statusColor.withValues(alpha: 0.8),
+                                borderRadius: const BorderRadius.only(bottomRight: Radius.circular(12))
+                              ),
+                              child: Text(
+                                statusMessage,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                )
+                              ),
+                            )
+                          ]
+                        )
+                      ),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => Scaffold(
+                              appBar: AppBar(
+                                actions: [
+                                  IconButton(
+                                    icon: const Icon(Icons.more_horiz),
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        showDragHandle: true,
+                                        enableDrag: true,
+                                        builder: (context) {
+                                          return _ImageActionSheet(imageUrl: event.bannerUrl);
+                                        },
+                                      );
+                                    }
+                                  )
+                                ],
+                              ),
+                              body: Container(
+                                constraints: const BoxConstraints.expand(),
+                                child: InteractiveViewer(
+                                  child: Hero(
+                                    tag: event.id,
+                                    child: CachedNetworkImage(
+                                      imageUrl: event.bannerUrl,
+                                      fit: BoxFit.contain
+                                    )
+                                  ),
+                                )
+                              )
+                            )
+                          )
+                        );
+                      },
+                      onLongPress: () {
+                        showModalBottomSheet(
+                          context: context,
+                          showDragHandle: true,
+                          enableDrag: true,
+                          builder: (context) {
+                            return _ImageActionSheet(imageUrl: event.bannerUrl);
+                          },
+                        );
+                      },
+                    ),
+                    ListTile(
+                      title: Text(
+                        event.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis
+                      ),
+                      subtitle: Text(
+                        event.desc,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis
+                      )
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        launchUrl(
+                          Uri.parse('https://hoyolab.com')
+                          .replace(
+                            path: event.webPath
+                          )
+                        );
+                      },
+                      child: const Text('詳細を見る')
+                    )
+                  ],
+                ),
+              );
+            },
+          ),
         );
       },
       error: (error, stackTrace) => Column(
@@ -244,54 +316,125 @@ class _NoticeListView extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     useAutomaticKeepAlive(wantKeepAlive: true);
+    final controller = useScrollController();
+    
     final noticeList = ref.watch(noticeListNotifierProvider(type));
     final noticeListProvider = ref.read(noticeListNotifierProvider(type).notifier);
 
+    useEffect(() {
+      controller.addListener(() {
+        if (controller.position.pixels >= controller.position.maxScrollExtent - 100) {
+          noticeListProvider.fetchMore();
+        }
+      });
+      return null;
+    }, [controller]);
+
     return noticeList.when(
       skipLoadingOnReload: true,
+      skipError: true,
       data: (noticeListData) {
-        return NotificationListener<ScrollNotification>(
-          onNotification: (ScrollNotification scrollInfo) {
-            if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-              noticeListProvider.fetchMore();
-            }
-            return false;
+        return RefreshIndicator(
+          onRefresh: () async {
+            noticeListProvider.refresh();
           },
-          child: RefreshIndicator(
-            onRefresh: () async {
-              noticeListProvider.refresh();
-            },
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  ...noticeListData.list.map((notice) {
-                    return ListTile(
-                      title: Text(notice.post.subject),
-                      subtitle: Text(formatTimeAgo(notice.post.createdAt)),
-                      trailing: notice.imageList.firstOrNull?.url != null ?
-                      AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: CachedNetworkImage(
-                          imageUrl: notice.imageList.first.url,
-                          width: 100,
-                          fit: BoxFit.cover
-                        )
-                      ) :
-                      null,
-                      onTap: () {
-                        launchUrlString('https://www.hoyolab.com/article/${notice.post.postId}');
-                      },
-                    );
-                  }),
-                  Padding(
+          child: ListView.builder(
+            controller: controller,
+            itemCount: noticeListData.list.length + 1,
+            itemBuilder: (context, index) {
+              if (index == noticeListData.list.length) {
+                if (noticeList.isLoading) {
+                  return Padding(
                     padding: const EdgeInsets.all(8),
+                    child: const Center(
+                      child: CircularProgressIndicator()
+                    )
+                  );
+                }
+                if (noticeList.hasError) {
+                  return Column(
+                    children: [
+                      Text(
+                        '読込中にエラーが発生しました',
+                        style: TextStyle(
+                          fontSize: 16
+                        )
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text('エラー'),
+                                    content: SingleChildScrollView(
+                                      child: Text(noticeList.error.toString())
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: Text('コピー'),
+                                        onPressed: () => Clipboard.setData(ClipboardData(text: noticeList.error.toString())),
+                                      ),
+                                      TextButton(
+                                        child: Text('閉じる'),
+                                        onPressed: () => Navigator.pop(context),
+                                      )
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: Text('エラー詳細')
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              noticeListProvider.fetchMore();
+                            },
+                            child: Text('再試行')
+                          )
+                        ]
+                      )
+                    ]
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Center(
                     child: noticeListData.isLast ?
                     const Text('リストの最後') :
-                    const CircularProgressIndicator()
+                    ElevatedButton(
+                      onPressed: () {
+                        noticeListProvider.fetchMore();
+                      },
+                      child: Text('さらに読み込む')
+                    )
                   )
-                ],
-              ),
-            ),
+                );
+              }
+
+              final notice = noticeListData.list[index];
+
+              return ListTile(
+                title: Text(notice.post.subject),
+                subtitle: Text(formatTimeAgo(notice.post.createdAt)),
+                trailing: notice.imageList.firstOrNull?.url != null ?
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: CachedNetworkImage(
+                    imageUrl: notice.imageList.first.url,
+                    width: 100,
+                    fit: BoxFit.cover
+                  )
+                ) :
+                null,
+                onTap: () {
+                  launchUrlString('https://www.hoyolab.com/article/${notice.post.postId}');
+                },
+              );
+            }
           )
         );
       },

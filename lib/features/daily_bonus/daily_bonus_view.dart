@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:lumine/core/provider/hoyolab_api.dart';
 import 'package:lumine/features/daily_bonus/data/award_list_notifier_provider.dart';
@@ -99,7 +101,7 @@ class DailyBonusView extends HookConsumerWidget {
                                                     padding: const EdgeInsets.all(8),
                                                     constraints: const BoxConstraints.expand(),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.white.withOpacity(0.5),
+                                                      color: Colors.white.withValues(alpha: 0.5),
                                                       borderRadius: BorderRadius.circular(100)
                                                     ),
                                                     child: Image.asset('assets/check.png'),
@@ -152,7 +154,10 @@ class DailyBonusView extends HookConsumerWidget {
                                   builder: (context) {
                                     return AlertDialog(
                                       title: const Text('受領履歴'),
-                                      content: const _RewardHistoryView(),
+                                      content: SizedBox(
+                                        width: 500,
+                                        child: const _RewardHistoryView()
+                                      ),
                                       actions: [
                                         TextButton(
                                           onPressed: () => Navigator.pop(context),
@@ -292,7 +297,7 @@ class DailyBonusView extends HookConsumerWidget {
                                         padding: const EdgeInsets.all(16),
                                         constraints: const BoxConstraints.expand(),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.5)
+                                          color: Colors.white.withValues(alpha: 0.5)
                                         ),
                                         child: Image.asset('assets/check.png'),
                                       ),
@@ -524,53 +529,124 @@ class _CheckinMakeupView extends ConsumerWidget {
   }
 }
 
-class _RewardHistoryView extends ConsumerWidget {
+class _RewardHistoryView extends HookConsumerWidget {
   const _RewardHistoryView();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final controller = useScrollController();
+    
     final rewardHistory = ref.watch(rewardHistoryNotifierProvider);
+
+    useEffect(() {
+      controller.addListener(() {
+        if (controller.position.pixels >= controller.position.maxScrollExtent - 100) {
+          ref.read(rewardHistoryNotifierProvider.notifier).fetchMore();
+        }
+      });
+      return null;
+    }, [controller]);
 
     return rewardHistory.when(
       skipLoadingOnReload: true,
+      skipError: true,
       data: (rewardHistoryData) {
-        return NotificationListener(
-          onNotification: (ScrollNotification scrollInfo) {
-            if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
-              ref.read(rewardHistoryNotifierProvider.notifier).fetchMore();
-            }
-            return false;
+        return RefreshIndicator(
+          onRefresh: () async {
+            await ref.read(rewardHistoryNotifierProvider.notifier).refresh();
           },
-          child: RefreshIndicator(
-            onRefresh: () async {
-              await ref.read(rewardHistoryNotifierProvider.notifier).refresh();
-            },
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: [
-                  ...rewardHistoryData.list.map((reward) =>
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: SizedBox.square(
-                        dimension: 56,
-                        child: CachedNetworkImage(
-                          imageUrl: reward.img
-                        ),
-                      ),
-                      title: Text('${reward.name} x${reward.cnt}'),
-                      subtitle: Text(reward.createdAt)
-                    ),
-                  ),
-                  Padding(
+          child: ListView.builder(
+            controller: controller,
+            physics: AlwaysScrollableScrollPhysics(),
+            itemCount: rewardHistoryData.list.length + 1,
+            itemBuilder: (context, index) {
+              if (index == rewardHistoryData.list.length) {
+                if (rewardHistory.isLoading) {
+                  return Padding(
                     padding: const EdgeInsets.all(8),
+                    child: const Center(
+                      child: CircularProgressIndicator()
+                    )
+                  );
+                }
+                if (rewardHistory.hasError) {
+                  return Column(
+                    children: [
+                      Text(
+                        '読込中にエラーが発生しました',
+                        style: TextStyle(
+                          fontSize: 16
+                        )
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text('エラー'),
+                                    content: SingleChildScrollView(
+                                      child: Text(rewardHistory.error.toString())
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        child: Text('コピー'),
+                                        onPressed: () => Clipboard.setData(ClipboardData(text: rewardHistory.error.toString())),
+                                      ),
+                                      TextButton(
+                                        child: Text('閉じる'),
+                                        onPressed: () => Navigator.pop(context),
+                                      )
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: Text('エラー詳細')
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              ref.read(rewardHistoryNotifierProvider.notifier).fetchMore();
+                            },
+                            child: Text('再試行')
+                          )
+                        ]
+                      )
+                    ]
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Center(
                     child: ref.read(rewardHistoryNotifierProvider.notifier).noMoreRecords ?
                     const Text('リストの最後') :
-                    const CircularProgressIndicator()
+                    ElevatedButton(
+                      onPressed: () {
+                        ref.read(rewardHistoryNotifierProvider.notifier).fetchMore();
+                      },
+                      child: Text('さらに読み込む')
+                    )
+                  )
+                );
+              }
+              
+              final reward = rewardHistoryData.list[index];
+
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: SizedBox.square(
+                  dimension: 56,
+                  child: CachedNetworkImage(
+                    imageUrl: reward.img
                   ),
-                ],
-              )
-            ),
+                ),
+                title: Text('${reward.name} x${reward.cnt}'),
+                subtitle: Text(reward.createdAt)
+              );
+            },
           )
         );
       },

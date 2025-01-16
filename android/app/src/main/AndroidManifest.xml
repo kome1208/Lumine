@@ -52,19 +52,18 @@
             </intent-filter>
         </activity>
 
-        <!-- <receiver android:name=".glance.HomeWidgetReceiver"
+        <receiver
+            android:name=".glance.HomeWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/home_widget_glance" />
-        </receiver> -->
+                android:resource="@xml/daily_note_widget" />
+        </receiver>
 
-        <!-- Used for Background Work -->
-        <receiver android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
-            android:exported="true">
+        <receiver android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"  android:exported="true">
             <intent-filter>
                 <action android:name="es.antonborri.home_widget.action.BACKGROUND" />
             </intent-filter>

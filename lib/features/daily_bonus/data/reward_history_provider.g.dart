@@ -7,7 +7,7 @@ part of 'reward_history_provider.dart';
 // **************************************************************************
 
 String _$rewardHistoryNotifierHash() =>
-    r'14e9f75137c74261ec3bc26ce7b8b17cadd4a338';
+    r'c37598c0b254855902bbb6c7c22e3b84dfc4135c';
 
 /// See also [RewardHistoryNotifier].
 @ProviderFor(RewardHistoryNotifier)

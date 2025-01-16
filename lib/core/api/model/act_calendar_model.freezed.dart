@@ -1249,6 +1249,8 @@ mixin _$ActItem {
   TowerDetail? get towerDetail => throw _privateConstructorUsedError;
   @JsonKey(name: 'double_detail')
   DoubleDetail? get doubleDetail => throw _privateConstructorUsedError;
+  @JsonKey(name: 'sign_in_detail')
+  SignInDetail? get signInDetail => throw _privateConstructorUsedError;
 
   /// Serializes this ActItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1280,13 +1282,15 @@ abstract class $ActItemCopyWith<$Res> {
       @JsonKey(name: 'liben_detail') LibenDetail? libenDetail,
       @JsonKey(name: 'role_combat_detail') RoleCombatDetail? roleCombatDetail,
       @JsonKey(name: 'tower_detail') TowerDetail? towerDetail,
-      @JsonKey(name: 'double_detail') DoubleDetail? doubleDetail});
+      @JsonKey(name: 'double_detail') DoubleDetail? doubleDetail,
+      @JsonKey(name: 'sign_in_detail') SignInDetail? signInDetail});
 
   $ExploreDetailCopyWith<$Res>? get exploreDetail;
   $LibenDetailCopyWith<$Res>? get libenDetail;
   $RoleCombatDetailCopyWith<$Res>? get roleCombatDetail;
   $TowerDetailCopyWith<$Res>? get towerDetail;
   $DoubleDetailCopyWith<$Res>? get doubleDetail;
+  $SignInDetailCopyWith<$Res>? get signInDetail;
 }
 
 /// @nodoc
@@ -1320,6 +1324,7 @@ class _$ActItemCopyWithImpl<$Res, $Val extends ActItem>
     Object? roleCombatDetail = freezed,
     Object? towerDetail = freezed,
     Object? doubleDetail = freezed,
+    Object? signInDetail = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -1386,6 +1391,10 @@ class _$ActItemCopyWithImpl<$Res, $Val extends ActItem>
           ? _value.doubleDetail
           : doubleDetail // ignore: cast_nullable_to_non_nullable
               as DoubleDetail?,
+      signInDetail: freezed == signInDetail
+          ? _value.signInDetail
+          : signInDetail // ignore: cast_nullable_to_non_nullable
+              as SignInDetail?,
     ) as $Val);
   }
 
@@ -1458,6 +1467,20 @@ class _$ActItemCopyWithImpl<$Res, $Val extends ActItem>
       return _then(_value.copyWith(doubleDetail: value) as $Val);
     });
   }
+
+  /// Create a copy of ActItem
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SignInDetailCopyWith<$Res>? get signInDetail {
+    if (_value.signInDetail == null) {
+      return null;
+    }
+
+    return $SignInDetailCopyWith<$Res>(_value.signInDetail!, (value) {
+      return _then(_value.copyWith(signInDetail: value) as $Val);
+    });
+  }
 }
 
 /// @nodoc
@@ -1483,7 +1506,8 @@ abstract class _$$ActItemImplCopyWith<$Res> implements $ActItemCopyWith<$Res> {
       @JsonKey(name: 'liben_detail') LibenDetail? libenDetail,
       @JsonKey(name: 'role_combat_detail') RoleCombatDetail? roleCombatDetail,
       @JsonKey(name: 'tower_detail') TowerDetail? towerDetail,
-      @JsonKey(name: 'double_detail') DoubleDetail? doubleDetail});
+      @JsonKey(name: 'double_detail') DoubleDetail? doubleDetail,
+      @JsonKey(name: 'sign_in_detail') SignInDetail? signInDetail});
 
   @override
   $ExploreDetailCopyWith<$Res>? get exploreDetail;
@@ -1495,6 +1519,8 @@ abstract class _$$ActItemImplCopyWith<$Res> implements $ActItemCopyWith<$Res> {
   $TowerDetailCopyWith<$Res>? get towerDetail;
   @override
   $DoubleDetailCopyWith<$Res>? get doubleDetail;
+  @override
+  $SignInDetailCopyWith<$Res>? get signInDetail;
 }
 
 /// @nodoc
@@ -1526,6 +1552,7 @@ class __$$ActItemImplCopyWithImpl<$Res>
     Object? roleCombatDetail = freezed,
     Object? towerDetail = freezed,
     Object? doubleDetail = freezed,
+    Object? signInDetail = freezed,
   }) {
     return _then(_$ActItemImpl(
       id: null == id
@@ -1592,6 +1619,10 @@ class __$$ActItemImplCopyWithImpl<$Res>
           ? _value.doubleDetail
           : doubleDetail // ignore: cast_nullable_to_non_nullable
               as DoubleDetail?,
+      signInDetail: freezed == signInDetail
+          ? _value.signInDetail
+          : signInDetail // ignore: cast_nullable_to_non_nullable
+              as SignInDetail?,
     ));
   }
 }
@@ -1615,7 +1646,8 @@ class _$ActItemImpl implements _ActItem {
       @JsonKey(name: 'liben_detail') this.libenDetail,
       @JsonKey(name: 'role_combat_detail') this.roleCombatDetail,
       @JsonKey(name: 'tower_detail') this.towerDetail,
-      @JsonKey(name: 'double_detail') this.doubleDetail})
+      @JsonKey(name: 'double_detail') this.doubleDetail,
+      @JsonKey(name: 'sign_in_detail') this.signInDetail})
       : _rewardList = rewardList;
 
   factory _$ActItemImpl.fromJson(Map<String, dynamic> json) =>
@@ -1669,10 +1701,13 @@ class _$ActItemImpl implements _ActItem {
   @override
   @JsonKey(name: 'double_detail')
   final DoubleDetail? doubleDetail;
+  @override
+  @JsonKey(name: 'sign_in_detail')
+  final SignInDetail? signInDetail;
 
   @override
   String toString() {
-    return 'ActItem(id: $id, name: $name, type: $type, startTimestamp: $startTimestamp, endTimestamp: $endTimestamp, desc: $desc, strategy: $strategy, countdownSeconds: $countdownSeconds, status: $status, rewardList: $rewardList, isFinished: $isFinished, exploreDetail: $exploreDetail, libenDetail: $libenDetail, roleCombatDetail: $roleCombatDetail, towerDetail: $towerDetail, doubleDetail: $doubleDetail)';
+    return 'ActItem(id: $id, name: $name, type: $type, startTimestamp: $startTimestamp, endTimestamp: $endTimestamp, desc: $desc, strategy: $strategy, countdownSeconds: $countdownSeconds, status: $status, rewardList: $rewardList, isFinished: $isFinished, exploreDetail: $exploreDetail, libenDetail: $libenDetail, roleCombatDetail: $roleCombatDetail, towerDetail: $towerDetail, doubleDetail: $doubleDetail, signInDetail: $signInDetail)';
   }
 
   @override
@@ -1706,7 +1741,9 @@ class _$ActItemImpl implements _ActItem {
             (identical(other.towerDetail, towerDetail) ||
                 other.towerDetail == towerDetail) &&
             (identical(other.doubleDetail, doubleDetail) ||
-                other.doubleDetail == doubleDetail));
+                other.doubleDetail == doubleDetail) &&
+            (identical(other.signInDetail, signInDetail) ||
+                other.signInDetail == signInDetail));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1728,7 +1765,8 @@ class _$ActItemImpl implements _ActItem {
       libenDetail,
       roleCombatDetail,
       towerDetail,
-      doubleDetail);
+      doubleDetail,
+      signInDetail);
 
   /// Create a copy of ActItem
   /// with the given fields replaced by the non-null parameter values.
@@ -1764,8 +1802,9 @@ abstract class _ActItem implements ActItem {
       @JsonKey(name: 'role_combat_detail')
       final RoleCombatDetail? roleCombatDetail,
       @JsonKey(name: 'tower_detail') final TowerDetail? towerDetail,
-      @JsonKey(name: 'double_detail')
-      final DoubleDetail? doubleDetail}) = _$ActItemImpl;
+      @JsonKey(name: 'double_detail') final DoubleDetail? doubleDetail,
+      @JsonKey(name: 'sign_in_detail')
+      final SignInDetail? signInDetail}) = _$ActItemImpl;
 
   factory _ActItem.fromJson(Map<String, dynamic> json) = _$ActItemImpl.fromJson;
 
@@ -1811,6 +1850,9 @@ abstract class _ActItem implements ActItem {
   @override
   @JsonKey(name: 'double_detail')
   DoubleDetail? get doubleDetail;
+  @override
+  @JsonKey(name: 'sign_in_detail')
+  SignInDetail? get signInDetail;
 
   /// Create a copy of ActItem
   /// with the given fields replaced by the non-null parameter values.
@@ -3108,5 +3150,191 @@ abstract class _DoubleDetail implements DoubleDetail {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$DoubleDetailImplCopyWith<_$DoubleDetailImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+SignInDetail _$SignInDetailFromJson(Map<String, dynamic> json) {
+  return _SignInDetail.fromJson(json);
+}
+
+/// @nodoc
+mixin _$SignInDetail {
+  int get status => throw _privateConstructorUsedError;
+  int get progress => throw _privateConstructorUsedError;
+  int get total => throw _privateConstructorUsedError;
+
+  /// Serializes this SignInDetail to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of SignInDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SignInDetailCopyWith<SignInDetail> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $SignInDetailCopyWith<$Res> {
+  factory $SignInDetailCopyWith(
+          SignInDetail value, $Res Function(SignInDetail) then) =
+      _$SignInDetailCopyWithImpl<$Res, SignInDetail>;
+  @useResult
+  $Res call({int status, int progress, int total});
+}
+
+/// @nodoc
+class _$SignInDetailCopyWithImpl<$Res, $Val extends SignInDetail>
+    implements $SignInDetailCopyWith<$Res> {
+  _$SignInDetailCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of SignInDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? status = null,
+    Object? progress = null,
+    Object? total = null,
+  }) {
+    return _then(_value.copyWith(
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as int,
+      progress: null == progress
+          ? _value.progress
+          : progress // ignore: cast_nullable_to_non_nullable
+              as int,
+      total: null == total
+          ? _value.total
+          : total // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$SignInDetailImplCopyWith<$Res>
+    implements $SignInDetailCopyWith<$Res> {
+  factory _$$SignInDetailImplCopyWith(
+          _$SignInDetailImpl value, $Res Function(_$SignInDetailImpl) then) =
+      __$$SignInDetailImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int status, int progress, int total});
+}
+
+/// @nodoc
+class __$$SignInDetailImplCopyWithImpl<$Res>
+    extends _$SignInDetailCopyWithImpl<$Res, _$SignInDetailImpl>
+    implements _$$SignInDetailImplCopyWith<$Res> {
+  __$$SignInDetailImplCopyWithImpl(
+      _$SignInDetailImpl _value, $Res Function(_$SignInDetailImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of SignInDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? status = null,
+    Object? progress = null,
+    Object? total = null,
+  }) {
+    return _then(_$SignInDetailImpl(
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as int,
+      progress: null == progress
+          ? _value.progress
+          : progress // ignore: cast_nullable_to_non_nullable
+              as int,
+      total: null == total
+          ? _value.total
+          : total // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$SignInDetailImpl implements _SignInDetail {
+  const _$SignInDetailImpl(
+      {required this.status, required this.progress, required this.total});
+
+  factory _$SignInDetailImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SignInDetailImplFromJson(json);
+
+  @override
+  final int status;
+  @override
+  final int progress;
+  @override
+  final int total;
+
+  @override
+  String toString() {
+    return 'SignInDetail(status: $status, progress: $progress, total: $total)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SignInDetailImpl &&
+            (identical(other.status, status) || other.status == status) &&
+            (identical(other.progress, progress) ||
+                other.progress == progress) &&
+            (identical(other.total, total) || other.total == total));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, status, progress, total);
+
+  /// Create a copy of SignInDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SignInDetailImplCopyWith<_$SignInDetailImpl> get copyWith =>
+      __$$SignInDetailImplCopyWithImpl<_$SignInDetailImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SignInDetailImplToJson(
+      this,
+    );
+  }
+}
+
+abstract class _SignInDetail implements SignInDetail {
+  const factory _SignInDetail(
+      {required final int status,
+      required final int progress,
+      required final int total}) = _$SignInDetailImpl;
+
+  factory _SignInDetail.fromJson(Map<String, dynamic> json) =
+      _$SignInDetailImpl.fromJson;
+
+  @override
+  int get status;
+  @override
+  int get progress;
+  @override
+  int get total;
+
+  /// Create a copy of SignInDetail
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SignInDetailImplCopyWith<_$SignInDetailImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

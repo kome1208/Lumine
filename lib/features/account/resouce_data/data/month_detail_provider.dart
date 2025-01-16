@@ -20,20 +20,20 @@ class MonthDetailNotifier extends _$MonthDetailNotifier {
 
     state = const AsyncLoading();
 
-    final detail = await fetchData();
+    state = await AsyncValue.guard(() async {
+      final detail = await fetchData();
 
-    state = AsyncData(
-      state.value != null ? state.value!.copyWith(
+      if (detail.list.length < 20) {
+        noMoreRecords = true;
+      }
+
+      return state.value != null ? state.value!.copyWith(
         list: [
           ...state.value!.list,
           ...detail.list,
         ]
-      ) : detail,
-    );
-
-    if (detail.list.length < 20) {
-      noMoreRecords = true;
-    }
+      ) : detail;
+    });
   }
 
   Future<MonthDetail> fetchData() async {

@@ -255,7 +255,7 @@ class _EventTabView extends HookConsumerWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     clipBehavior: Clip.hardEdge,
                     child: InkWell(
-                      onTap: () {
+                      onTap: act.status == PoolStatus.onGoing ? () {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -269,7 +269,7 @@ class _EventTabView extends HookConsumerWidget {
                             );
                           },
                         );
-                      },
+                      } : null,
                       child: Column(
                         children: [
                           ListTile(
@@ -360,6 +360,31 @@ class _EventTabView extends HookConsumerWidget {
                                   )
                                 ),
                               ),
+                              ActType.signIn => ListTile(
+                                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                                title: const Text('ログイン状況'),
+                                trailing: RichText(
+                                  text: TextSpan(
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      fontWeight: FontWeight.w500,
+                                      fontFamily: Theme.of(context).textTheme.bodySmall?.fontFamily
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: '${act.signInDetail!.progress}',
+                                        style: const TextStyle(
+                                          color: Colors.orange
+                                        )
+                                      ),
+                                      TextSpan(
+                                        text: '/${act.signInDetail!.total}'
+                                      ),
+                                    ]
+                                  )
+                                )
+                              ),
                               _ => const SizedBox()
                             }
                           ],
@@ -383,7 +408,7 @@ class _EventTabView extends HookConsumerWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     clipBehavior: Clip.hardEdge,
                     child: InkWell(
-                      onTap: () {
+                      onTap: act.status == PoolStatus.onGoing ? () {
                         showModalBottomSheet(
                           context: context,
                           isScrollControlled: true,
@@ -397,7 +422,7 @@ class _EventTabView extends HookConsumerWidget {
                             );
                           },
                         );
-                      },
+                      } : null,
                       child: Column(
                         children: [
                           ListTile(
@@ -972,12 +997,24 @@ class _EventDetail extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
-              title: Text(actItem.name),
-              subtitle: Text('残り時間: ${DateFormatter.formatTime(actItem.countdownSeconds * 1000, showSeconds: false)}'),
+              title: Text(actItem.name.replaceAll(RegExp(r'\\n'), '\n')),
+              subtitle: Text(actItem.desc.replaceAll(RegExp(r'\\n'), '\n')),
             ),
-            if (actItem.desc.isNotEmpty) Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(actItem.desc)
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.secondary
+                ),
+                borderRadius: BorderRadius.circular(12)
+              ),
+              child: ListTile(
+                contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                leading: Icon(Icons.access_time_rounded),
+                title: Text('残り時間: ${DateFormatter.formatTime(actItem.countdownSeconds * 1000, showSeconds: false)}'),
+                subtitle: Text('${DateFormatter.formatDate(int.parse(actItem.startTimestamp) * 1000, 'yyyy/M/d H:mm')} - ${DateFormatter.formatDate(int.parse(actItem.endTimestamp) * 1000, 'yyyy/M/d H:mm')}'),
+              )
             ),
             const ListTile(
               title: Text('報酬一覧'),
@@ -1016,7 +1053,7 @@ class _EventDetail extends StatelessWidget {
                                 margin: const EdgeInsets.only(bottom: 2),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(4),
-                                  color: Colors.black.withOpacity(0.5)
+                                  color: Colors.black.withValues(alpha: 0.5)
                                 ),
                                 child: Text(
                                   'x${reward.num}',

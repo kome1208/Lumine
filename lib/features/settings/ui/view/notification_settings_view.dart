@@ -15,41 +15,11 @@ class NotificationSettingView extends HookConsumerWidget {
     final settings = ref.watch(appNotificationNotifierProvider);
 
     ref.listen(appNotificationNotifierProvider, (previous, next) {
+      Workmanager().cancelByUniqueName(dailyNoteTask);
+      registerDailyNote();
+
       if (!next.enabled) {
-        Workmanager().cancelAll();
         FlutterLocalNotificationsPlugin().cancelAll();
-        return;
-      }
-
-      if (
-        !next.resinRemindEnabled &&
-        !next.expeditionFinishRemindEnabled &&
-        !next.transformerRemindEnabled &&
-        !next.homeCoinRemindEnabled &&
-        !next.dailyTaskRemindEnabled
-      ) {
-        Workmanager().cancelByUniqueName(dailyNoteTask);
-        return;
-      }
-      
-      if (
-        next.resinRemindEnabled ||
-        next.expeditionFinishRemindEnabled ||
-        next.transformerRemindEnabled ||
-        next.homeCoinRemindEnabled ||
-        next.dailyTaskRemindEnabled
-      ) {
-        registerDailyNote();
-      }
-
-      if (previous?.resinRemindOffset != next.resinRemindOffset) {
-        Workmanager().cancelByUniqueName(dailyNoteTask);
-        registerDailyNote();
-      }
-
-      if (previous?.expeditionFinishRemindMode != next.expeditionFinishRemindMode) {
-        Workmanager().cancelByUniqueName(dailyNoteTask);
-        registerDailyNote();
       }
     });
 

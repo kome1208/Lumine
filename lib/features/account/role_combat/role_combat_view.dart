@@ -418,7 +418,7 @@ class _CharMaster extends HookConsumerWidget {
                           ),
                           child: CachedNetworkImage(
                             imageUrl: avatar.icon,
-                            color: avatar.status == 1 ? Colors.transparent.withOpacity(0.6) : null,
+                            color: avatar.status == 1 ? Colors.transparent.withValues(alpha: 0.6) : null,
                             colorBlendMode: BlendMode.dstIn,
                           ),
                         ),
@@ -601,7 +601,7 @@ class _PerformanceDetails extends HookWidget {
                       height: 48,
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: CachedNetworkImage(imageUrl: buff.icon),
@@ -625,7 +625,7 @@ class _PerformanceDetails extends HookWidget {
                       height: 48,
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(24),
                       ),
                       child: CachedNetworkImage(imageUrl: card.icon),

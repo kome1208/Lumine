@@ -16,16 +16,16 @@ class EventListNotifier extends _$EventListNotifier {
 
     state = const AsyncValue.loading();
 
-    final detail = await fetchData(state.value!.nextOffset);
-
-    state = AsyncData(
-      detail.copyWith(
+    state = await AsyncValue.guard(() async {
+      final detail = await fetchData(state.value!.nextOffset);
+      
+      return detail.copyWith(
         list: [
           ...state.value!.list,
           ...detail.list,
         ]
-      )
-    );
+      );
+    });
   }
 
   Future<EventList> fetchData([String offset = '0']) async {

@@ -178,7 +178,7 @@ class CharacterDetailView extends HookConsumerWidget {
                           imageUrl: character.image,
                           fit: BoxFit.fitHeight,
                           alignment: Alignment.bottomCenter,
-                          color: Colors.transparent.withOpacity(0.4),
+                          color: Colors.transparent.withValues(alpha: 0.4),
                           colorBlendMode: BlendMode.dstIn,
                         ),
                       ),
@@ -525,7 +525,7 @@ class CharacterDetailView extends HookConsumerWidget {
                                   width: 50,
                                   height: 50,
                                   decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.2),
+                                    color: Colors.black.withValues(alpha: 0.2),
                                     border: Border.all(color: Colors.grey.shade700),
                                     borderRadius: BorderRadius.circular(28),
                                   ),
@@ -538,7 +538,7 @@ class CharacterDetailView extends HookConsumerWidget {
                                       if (!skill.isUnlock) Container(
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.5),
+                                          color: Colors.black.withValues(alpha: 0.5),
                                           borderRadius: BorderRadius.circular(28)
                                         ),
                                         child: Image.asset(

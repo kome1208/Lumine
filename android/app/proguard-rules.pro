@@ -1,0 +1,1 @@
+-keepclassmembers class com.kome1.lumine.glance.** { *; }

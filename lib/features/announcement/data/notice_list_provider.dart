@@ -18,16 +18,16 @@ class NoticeListNotifier extends _$NoticeListNotifier {
 
     state = const AsyncValue.loading();
 
-    final detail = await fetchData(state.value!.lastId);
+    state = await AsyncValue.guard(() async {
+      final detail = await fetchData(state.value!.lastId);
 
-    state = AsyncData(
-      detail.copyWith(
+      return detail.copyWith(
         list: [
           ...state.value!.list,
           ...detail.list,
         ]
-      )
-    );
+      );
+    });
   }
 
   Future<NewsList> fetchData([int lastId = 0]) async {

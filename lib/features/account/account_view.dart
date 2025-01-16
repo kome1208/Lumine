@@ -170,7 +170,7 @@ class AccountView extends HookConsumerWidget {
                                                 padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
                                                 decoration: BoxDecoration(
                                                   borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(12)),
-                                                  color: Colors.black.withOpacity(0.5),
+                                                  color: Colors.black.withValues(alpha: 0.5),
                                                 ),
                                                 child: Text(
                                                   'C${character.activedConstellationNum}',
@@ -975,7 +975,7 @@ class _CharacterSortView extends HookConsumerWidget {
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(10),
                                         border: Border.all(color: Colors.grey, width: 1),
-                                        color: addedCharacters.value.contains(character.id) ? Colors.black : Colors.black.withOpacity(0.5),
+                                        color: addedCharacters.value.contains(character.id) ? Colors.black : Colors.black.withValues(alpha: 0.5),
                                       ),
                                       alignment: Alignment.center,
                                       child: addedCharacters.value.contains(character.id) ? Text('${addedCharacters.value.indexOf(character.id) + 1}') : null

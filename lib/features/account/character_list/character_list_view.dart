@@ -155,7 +155,7 @@ class CharacterListView extends HookConsumerWidget {
                                       padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
                                       decoration: BoxDecoration(
                                         borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(12)),
-                                        color: Colors.black.withOpacity(0.5),
+                                        color: Colors.black.withValues(alpha: 0.5),
                                       ),
                                       child: Text(
                                         'C${character.activedConstellationNum}',

@@ -15,20 +15,21 @@ class RewardHistoryNotifier extends _$RewardHistoryNotifier {
   }
 
   Future<void> fetchMore() async {
+    print('fetch more');
     if (state.isLoading || state.isRefreshing || state.isReloading || noMoreRecords) return;
 
     state = const AsyncValue.loading();
 
-    final history = await fetchData();
+    state = await AsyncValue.guard(() async {
+      final history = await fetchData();
 
-    state = AsyncData(
-      history.copyWith(
+      return history.copyWith(
         list: [
           ...state.value!.list,
           ...history.list,
         ]
-      )
-    );
+      );
+    });
 
     if (state.value!.total <= _currentPage * 10) {
       noMoreRecords = true;

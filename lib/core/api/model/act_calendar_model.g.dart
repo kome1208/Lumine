@@ -151,6 +151,10 @@ _$ActItemImpl _$$ActItemImplFromJson(Map<String, dynamic> json) =>
           ? null
           : DoubleDetail.fromJson(
               json['double_detail'] as Map<String, dynamic>),
+      signInDetail: json['sign_in_detail'] == null
+          ? null
+          : SignInDetail.fromJson(
+              json['sign_in_detail'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$ActItemImplToJson(_$ActItemImpl instance) =>
@@ -171,6 +175,7 @@ Map<String, dynamic> _$$ActItemImplToJson(_$ActItemImpl instance) =>
       'role_combat_detail': instance.roleCombatDetail,
       'tower_detail': instance.towerDetail,
       'double_detail': instance.doubleDetail,
+      'sign_in_detail': instance.signInDetail,
     };
 
 const _$ActTypeEnumMap = {
@@ -180,6 +185,7 @@ const _$ActTypeEnumMap = {
   ActType.roleCombat: 'ActTypeRoleCombat',
   ActType.tower: 'ActTypeTower',
   ActType.double: 'ActTypeDouble',
+  ActType.signIn: 'ActTypeSignIn',
 };
 
 _$ActRewardImpl _$$ActRewardImplFromJson(Map<String, dynamic> json) =>
@@ -274,4 +280,18 @@ Map<String, dynamic> _$$DoubleDetailImplToJson(_$DoubleDetailImpl instance) =>
     <String, dynamic>{
       'total': instance.total,
       'left': instance.left,
+    };
+
+_$SignInDetailImpl _$$SignInDetailImplFromJson(Map<String, dynamic> json) =>
+    _$SignInDetailImpl(
+      status: (json['status'] as num).toInt(),
+      progress: (json['progress'] as num).toInt(),
+      total: (json['total'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$$SignInDetailImplToJson(_$SignInDetailImpl instance) =>
+    <String, dynamic>{
+      'status': instance.status,
+      'progress': instance.progress,
+      'total': instance.total,
     };

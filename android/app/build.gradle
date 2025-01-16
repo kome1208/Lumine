@@ -13,6 +13,14 @@ if (localPropertiesFile.exists()) {
     }
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withReader("UTF-8") { reader ->
+        keystoreProperties.load(reader)
+    }
+}
+
 def flutterVersionCode = localProperties.getProperty("flutter.versionCode")
 if (flutterVersionCode == null) {
     flutterVersionCode = "1"
@@ -26,11 +34,16 @@ if (flutterVersionName == null) {
 android {
     namespace = "com.kome1.lumine"
     compileSdk = 34
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_20
+        targetCompatibility = JavaVersion.VERSION_20
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_20
     }
 
     defaultConfig {
@@ -38,7 +51,7 @@ android {
         applicationId = "com.kome1.lumine"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
-        minSdk = 23
+        minSdk = 26
         targetSdk = 34
         multiDexEnabled = true
         versionCode = flutterVersionCode.toInteger()
@@ -50,14 +63,23 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
+
+    signingConfigs {
+       release {
+           keyAlias keystoreProperties['keyAlias']
+           keyPassword keystoreProperties['keyPassword']
+           storeFile keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
+           storePassword keystoreProperties['storePassword']
+       }
+   }
+
     
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig = signingConfigs.release
         }
     }
 }
@@ -68,7 +90,9 @@ flutter {
 
 dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
-    implementation 'androidx.glance:glance-appwidget:1.0.0'
-    implementation "androidx.work:work-runtime-ktx:2.8.1"
+    implementation 'androidx.glance:glance-appwidget:1.1.1'
+    implementation "androidx.glance:glance-material3:1.1.1"
+    implementation "androidx.work:work-runtime-ktx:2.9.1"
     implementation "androidx.multidex:multidex:2.0.1"
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }
